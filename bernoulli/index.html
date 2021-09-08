@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Bernoulli Factories</title>
+    <meta name="author" content="name" />
+    <meta name="description" content="description here" />
+    <meta name="keywords" content="keywords,here" />
+    <link
+      href="https://unpkg.com/tailwindcss/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <!--Replace with your tailwind.css once created-->
+  </head>
+
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_CHTML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+tex2jax: {
+inlineMath: [['$','$'], ['\\(','\\)']],
+processEscapes: true},
+jax: ["input/TeX","input/MathML","input/AsciiMath","output/CommonHTML"],
+extensions: ["tex2jax.js","mml2jax.js","asciimath2jax.js","MathMenu.js","MathZoom.js","AssistiveMML.js", "[Contrib]/a11y/accessibility-menu.js"],
+TeX: {
+extensions: ["AMSmath.js","AMSsymbols.js","noErrors.js","noUndefined.js"],
+equationNumbers: {
+autoNumber: "AMS"
+}
+},
+CommonHTML: {
+scale: 95
+}
+});
+</script>
+ 
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+	
+	<!--Container-->
+	<div class="container w-full md:max-w-5xl mx-auto pt-20">
+
+		<div class="w-full px-4 md:px-6 text-xl text-gray-800 leading-normal" style="font-family:Georgia,serif;">
+
+			<!--Title-->
+			<div class="font-sans">
+						<h1 class="font-bold font-sans break-normal text-gray-900 pt-6 pb-2 text-3xl md:text-4xl">An Introduction to Bernoulli Factories</h1>
+						<p class="text-sm md:text-base font-normal text-gray-600">Renato Paes Leme (renatoppl [at] google [dot] com)</p>
+<p class="text-sm md:text-base font-normal text-gray-600"> (Last updated in September 2021)</p>
+			</div>
+
+
+			<!--Post Content-->
+
+
+			<!--Lead Para-->
+			<p class="py-3">This page contains the materials for the tutorial given in the
+<a href="https://sites.google.com/a/diag.uniroma1.it/algadimar/european-summer-school-september-6-10-2021?authuser=0">European Summer School on Learning in Games, Markets, and Online Decision Making (ALGADIMAR)</a> 2021. Please tell me if you find any errors in either the slides or the lecture notes.
+</p>
+
+<p class="py-3"> <strong>Abstract:</strong>
+We will discuss a tool from applied probability called a "Bernoulli factory".
+In the Bernoulli factory problem you are given a coin (coin = Bernoulli
+variable) with unknown bias $p$ and you are asked to sample another variable with
+bias $f(p)$. Here is an example, given in the form of a puzzle: say that you have
+a coin with bias $p$ but you don't know what $p$ is. Now you are asked to sample
+$\{0,1\}$ with probability $f(p)=\exp(p-1)$. You can flip your $p$-coin as many times as
+you want.<p>
+
+<p class="py-3">We plan to cover the following topics (we will see how far we can get):</p>
+
+<ul class="list-disc list-inside">
+  <li>Examples of Bernoulli factories: Bernstein monomials, moment generating functions, ...</li>
+  <li>Von Neumann's Problem: how to sample an unbiased coin from a biased one? </li>
+  <li>Characterize the set of functions $f(p)$ that admit a Bernoulli factory</li>
+  <li>Coins to Dice: the Bernoulli Race</li>
+  <li>Bernoulli Factories for Rational Functions</li>
+  <li>Combinatorial Bernoulli Factories</li>
+  <li>Factory for $k$-subset (Sampford Sampling)</li>
+  <li>Factories for co-dimension $1$</li>
+  <li>Factories for any affine subspace</li>
+  <li>Factory for Matching</li>
+  <li>Applications to Mechanism Design</li>
+  <li>Some open Problems</li>
+</ul>
+</p>
+
+
+<p class="py-3"> <strong>Materials:</strong> 
+<ul class="list-disc list-inside">
+  <li>Slides: <a href="bernoulli-slides-0.pdf">version-0</a>, version-1 (coming soon)</li>
+  <li>Lecture Notes: version-1 (coming soon)</li>
+</ul>
+</p>
+
+<p class="py-3"> <strong>References:</strong> 
+<ul class="list-disc list-inside">
+  <li><a href="https://dl.acm.org/doi/abs/10.1145/175007.175019">A Bernoulli Factory</a> (Keane and O'Brien)</li>
+  <li><a href="https://arxiv.org/pdf/math/0304143.pdf">New coins from old: computing with unknown bias</a> (Mossel and Peres)</li>
+  <li><a href="https://arxiv.org/abs/math/0309222">Fast simulation of new coins from old</a> (Nacu and Peres)</li>
+  <li><a href="https://arxiv.org/abs/2011.03865">Combinatorial Bernoulli Factories: Matchings, Flows and Other Polytopes</a> (Niazadeh, Paes Leme and Schneider)</li>
+  <li><a href="https://arxiv.org/abs/1703.04143v2">Bernoulli Factories and Black-Box Reductions in Mechanism Design</a> (Dughmi, Hartline, Kleinberg and Niazadeh)</li>
+</ul>
+</p>
+
+
+
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+$('a').addClass("text-green-600 no-underline hover:underline");
+</script>
+ 
+</html>
+
