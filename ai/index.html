@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Explorations - Renato PPL</title>
+    
+    <!-- YOUR STYLES -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- LOCAL DEPENDENCIES -->
+    
+    <!-- 1. KaTeX CSS (Math) -->
+    <!-- Note: KaTeX fonts are loaded relative to this file automatically -->
+    <link rel="stylesheet" href="lib/katex.min.css">
+    
+    <!-- 2. Computer Modern Sans Font (Local) -->
+    <link rel="stylesheet" href="lib/cmu-sans.css">
+</head>
+<body>
+
+    <div class="container" id="content">
+        Loading content...
+    </div>
+
+    <!-- JAVASCRIPT DEPENDENCIES -->
+    
+    <!-- 3. Marked.js (Markdown Parser) -->
+    <script src="lib/marked.js"></script>
+    
+    <!-- 4. KaTeX JS (Math Rendering) -->
+    <script src="lib/katex.min.js"></script>
+    <script src="lib/contrib/auto-render.min.js"></script>
+
+    <!-- MAIN SCRIPT -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const contentDiv = document.getElementById('content');
+            const contentFile = 'content.md';
+
+            // Fetch the Markdown file
+            fetch(contentFile)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Could not load ${contentFile}`);
+                    }
+                    return response.text();
+                })
+                .then(markdown => {
+                    // 1. Configure Marked
+                    marked.use({
+                        gfm: true,
+                        breaks: true
+                    });
+
+                    // 2. Convert Markdown to HTML
+                    contentDiv.innerHTML = marked.parse(markdown);
+
+                    // 3. Render Math
+                    // (We check if KaTeX loaded successfully)
+                    if (window.renderMathInElement) {
+                        renderMath();
+                    } else {
+                        // In case script is defer or slow
+                        setTimeout(renderMath, 100);
+                    }
+                })
+                .catch(error => {
+                    contentDiv.innerHTML = `<p style="color:red">Error loading content: ${error.message}.<br>Note: This setup requires a web server (CORS restrictions).</p>`;
+                });
+
+            function renderMath() {
+                if (!window.renderMathInElement) return;
+                renderMathInElement(contentDiv, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError : false
+                });
+            }
+        });
+    </script>
+</body>
+</html>
