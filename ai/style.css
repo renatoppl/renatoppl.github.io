@@ -51,21 +51,20 @@ h2 { font-size: 1.8em; }
 ul { padding-left: 20px; }
 li { margin-bottom: 8px; }
 
-/* Code Blocks */
+
+/* Code Blocks - Let Highlight.js handle the styling */
 pre {
-    background: #f4f4f4;
-    padding: 15px;
     border-radius: 5px;
     overflow-x: auto;
     font-size: 0.9em;
-    border: 1px solid #e0e0e0;
+    margin: 1.5em 0;
 }
 
-code {
-    font-family: 'Courier New', Courier, monospace;
-    background-color: #f4f4f4;
-    padding: 2px 4px;
-    border-radius: 3px;
+/* The 'hljs' class is added by the library */
+.hljs {
+    padding: 15px !important; /* Force padding */
+    background: #f6f8fa !important; /* GitHub-style light grey */
+    border-radius: 6px;
 }
 
 /* Links */

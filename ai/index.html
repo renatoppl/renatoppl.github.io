@@ -16,6 +16,9 @@
     
     <!-- 2. Computer Modern Sans Font (Local) -->
     <link rel="stylesheet" href="lib/cmu-sans.css">
+
+    <!-- 3. Highlight.js CSS (Code Colors) -->
+    <link rel="stylesheet" href="lib/highlight-github.css">
 </head>
 <body>
 
@@ -25,12 +28,15 @@
 
     <!-- JAVASCRIPT DEPENDENCIES -->
     
-    <!-- 3. Marked.js (Markdown Parser) -->
+    <!-- 4. Marked.js (Markdown Parser) -->
     <script src="lib/marked.js"></script>
     
-    <!-- 4. KaTeX JS (Math Rendering) -->
+    <!-- 5. KaTeX JS (Math Rendering) -->
     <script src="lib/katex.min.js"></script>
     <script src="lib/contrib/auto-render.min.js"></script>
+
+    <!-- 6. Highlight.js (Code Highlighting) -->
+    <script src="lib/highlight.js"></script>
 
     <!-- MAIN SCRIPT -->
     <script>
@@ -55,6 +61,10 @@
 
                     // 2. Convert Markdown to HTML
                     contentDiv.innerHTML = marked.parse(markdown);
+
+		    // 3. Highlight Code Blocks (New!)
+                    hljs.highlightAll();
+
 
                     // 3. Render Math
                     // (We check if KaTeX loaded successfully)

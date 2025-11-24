@@ -13,5 +13,5 @@ and maybe some code examples:
 
 ```python
 def hello():
-print("Hello AI")
+	print("Hello AI")
 ```
