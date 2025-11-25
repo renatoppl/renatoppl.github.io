@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Explorations - Renato PPL</title>
+    
+    <!-- YOUR STYLES -->
+    <link rel="stylesheet" href="../ai/style.css">
+
+    <!-- LOCAL DEPENDENCIES -->
+    
+    <!-- 1. KaTeX CSS (Math) -->
+    <!-- Note: KaTeX fonts are loaded relative to this file automatically -->
+    <link rel="stylesheet" href="../ai/lib/katex.min.css">
+    
+    <!-- 2. Computer Modern Sans Font (Local) -->
+    <link rel="stylesheet" href="../ai/lib/cmu-sans.css">
+
+    <!-- 3. Highlight.js CSS (Code Colors) -->
+    <link rel="stylesheet" href="../ai/lib/highlight-github.css">
+</head>
+<body>	
+    <div class="container" id="content">
+        Loading content...
+    </div>
+
+    <script type="text/markdown" id="content-source">
+### Template
+
+Add math and markdown code like this:
+
+$$\sum_i \nabla f_i(x) \otimes g(x)$$ 
+
+And some code:
+
+```python
+def differential(f, x, eps):
+    return f(x) - f(x-eps)/eps;
+```
+
+and perhaps some [links](../index.html).
+
+    </script>
+
+    <!-- JAVASCRIPT DEPENDENCIES -->
+    
+    <!-- 4. Marked.js (Markdown Parser) -->
+    <script src="../ai/lib/marked.js"></script>
+    
+    <!-- 5. KaTeX JS (Math Rendering) -->
+    <script src="../ai/lib/katex.min.js"></script>
+    <script src="../ai/lib/contrib/auto-render.min.js"></script>
+
+    <!-- 6. Highlight.js (Code Highlighting) -->
+    <script src="../ai/lib/highlight.js"></script>
+
+    <!-- MAIN SCRIPT -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. Get content from the script tag above
+            const markdownSource = document.getElementById('content-source').textContent;
+            const contentDiv = document.getElementById('content');
+
+            // 2. Configure Marked
+            if (typeof marked !== 'undefined') {
+                marked.use({ gfm: true, breaks: true });
+                // 3. Render Markdown to HTML
+                contentDiv.innerHTML = marked.parse(markdownSource);
+            } else {
+                contentDiv.innerHTML = "<p style='color:red'>Error: marked.js library not loaded.</p>";
+            }
+
+            // 4. Highlight Code Blocks
+            if (typeof hljs !== 'undefined') {
+                hljs.highlightAll();
+            }
+
+            // 5. Render Math
+            if (window.renderMathInElement) {
+                renderMath();
+            } else {
+                // If using defer, we might need to wait, but with standard script tags it should be ready.
+                // We add a small safety check just in case.
+                setTimeout(renderMath, 100);
+            }
+
+            function renderMath() {
+                if (!window.renderMathInElement) return;
+                renderMathInElement(contentDiv, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError : false
+                });
+            }
+        });
+    </script>
+</body>
+</html>
