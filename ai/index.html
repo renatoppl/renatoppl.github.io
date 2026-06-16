@@ -45,7 +45,7 @@
             const contentFile = 'content.md';
 
             // Fetch the Markdown file
-            fetch(contentFile)
+            fetch(contentFile + '?v=' + Date.now())
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Could not load ${contentFile}`);
