@@ -1,6 +1,9 @@
 ![ai](ai_banner_1.png)
 # AI Exploration
 
+*Under construction...*
+
+<!--
 Exploring theorem proving like $\int_{\partial B} f = \int_B \partial f$
 
 and I plan to add some bullet lists
@@ -15,3 +18,4 @@ and maybe some code examples:
 def hello():
 	print("Hello AI")
 ```
+-->

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Driven Research in EconCS – Tutorial at ACM EC'26</title>
+    <meta name="description" content="A tutorial on AI-Driven Research in Economics and Computation, presented at ACM EC'26 in Rome on July 6, 2026. Presenters: Paul Duetting and Renato Paes Leme.">
+
+    <!-- Same stylesheet as ai/index.html -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Computer Modern Sans Font (Local) -->
+    <link rel="stylesheet" href="lib/cmu-sans.css">
+
+    <style>
+        /* Additional styles for the tutorial page */
+        .tutorial-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tutorial-header h1 {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 8px;
+            font-size: 2.2em;
+            line-height: 1.2;
+        }
+
+        .event-meta {
+            color: #555;
+            font-size: 0.95em;
+            margin: 6px 0;
+        }
+
+        .event-meta strong {
+            color: #333;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #f0f4ff;
+            border: 1px solid #c8d8f8;
+            border-radius: 4px;
+            padding: 2px 10px;
+            font-size: 0.85em;
+            color: #2a4a9a;
+            margin-right: 6px;
+            margin-bottom: 4px;
+        }
+
+        .presenters {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .presenter-card {
+            background: #f9f9f9;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 14px 18px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .presenter-card .name {
+            font-weight: bold;
+            font-size: 1.05em;
+            color: #111;
+        }
+
+        .presenter-card .affiliation {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 3px;
+        }
+
+        section {
+            margin-top: 36px;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            counter-reset: toc-counter;
+        }
+
+        .toc-list > li {
+            counter-increment: toc-counter;
+            margin-bottom: 14px;
+            padding-left: 0;
+        }
+
+        .toc-list > li::before {
+            content: counter(toc-counter) ". ";
+            font-weight: bold;
+            color: #444;
+        }
+
+        .toc-list > li .toc-title {
+            font-weight: bold;
+            color: #111;
+        }
+
+        .toc-list > li .toc-desc {
+            color: #555;
+            font-size: 0.92em;
+            margin-top: 3px;
+            padding-left: 1.4em;
+        }
+
+        .toc-list ul {
+            padding-left: 1.8em;
+            margin-top: 4px;
+        }
+
+        .toc-list ul li {
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+            list-style-type: "– ";
+        }
+
+        .prev-tutorials {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .prev-tutorial-link {
+            display: block;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 10px 16px;
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 0.95em;
+            transition: background 0.15s;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .prev-tutorial-link:hover {
+            background: #eef4ff;
+            text-decoration: none;
+        }
+
+        .prev-tutorial-link .venue-label {
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .prev-tutorial-link .venue-sub {
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        .workshop-box {
+            background: #fffbf0;
+            border: 1px solid #e8d88a;
+            border-left: 4px solid #c8a800;
+            border-radius: 5px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        .workshop-box h3 {
+            margin-top: 0;
+            font-size: 1.05em;
+            color: #7a6000;
+        }
+
+        .workshop-box p {
+            margin-bottom: 0;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .workshop-box a {
+            color: #7a6000;
+        }
+
+        .note {
+            color: #888;
+            font-size: 0.88em;
+            font-style: italic;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+            margin: 12px 0;
+        }
+
+        .schedule-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .schedule-table td:first-child {
+            white-space: nowrap;
+            color: #555;
+            font-size: 0.9em;
+            width: 120px;
+        }
+
+        .schedule-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ── Header ── -->
+        <header class="tutorial-header">
+            <h1>AI-Driven Research in EconCS</h1>
+            <p class="event-meta">
+                <span class="badge">Tutorial</span>
+                <span class="badge">ACM EC'26</span>
+                <span class="badge">In-Person · Rome</span>
+            </p>
+            <p class="event-meta">
+                <strong>Event:</strong>
+                <a href="https://ec26.sigecom.org/program/tutorials/" target="_blank">
+                    The 27th ACM Conference on Economics and Computation (EC'26)
+                </a>
+                — Rome, Italy
+            </p>
+            <p class="event-meta">
+                <strong>Date &amp; Time:</strong> July 6, 2026 &nbsp;|&nbsp; 9 a.m. – 11 a.m. CEST
+            </p>
+        </header>
+
+        <!-- ── Banner Image ── -->
+        <figure style="margin: 0 0 32px 0;">
+            <img src="tutorial-banner.png"
+                 alt="Illustration of a researcher and a robot collaborating on a computer"
+                 style="width: 100%; border-radius: 6px; border: 1px solid #e8e8e8;">
+        </figure>
+
+        <!-- ── Presenters ── -->
+        <section id="presenters">
+            <h2>Presenters</h2>
+            <div class="presenters">
+                <div class="presenter-card">
+                    <div class="name">Paul Duetting</div>
+                    <div class="affiliation">Google Research</div>
+                </div>
+                <div class="presenter-card">
+                    <div class="name">Renato Paes Leme</div>
+                    <div class="affiliation">Google Research</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Abstract ── -->
+        <section id="abstract">
+            <h2>Abstract</h2>
+            <p>
+                The rapid evolution of modern AI systems — including large language models, automated
+                reasoning engines, and AI-assisted proof checkers — is fundamentally reshaping how
+                researchers approach problems in Economics and Computation. This tutorial provides an
+                accessible, hands-on introduction to AI-driven research methodology tailored to the
+                EconCS community.
+            </p>
+            <p>
+                We survey the landscape of AI tools now available to researchers: from automated
+                literature review and idea generation, to assisted mathematical problem-solving,
+                conjecture formulation, and even full proof search. Through concrete examples drawn
+                from mechanism design, algorithmic game theory, and online learning, we illustrate
+                how practitioners can integrate these tools into their daily workflow — as collaborative
+                partners rather than mere search engines.
+            </p>
+            <p>
+                Along the way, we discuss both the remarkable recent successes (AI contributions to
+                open problems, AI-generated proofs of non-trivial results) and the critical limitations
+                one must keep in mind: hallucination, brittleness, and the fundamental importance of
+                human verification. The goal of the tutorial is to leave attendees equipped with
+                practical skills and a realistic picture of where AI assistance is most — and least —
+                effective in EconCS research.
+            </p>
+        </section>
+
+        <!-- ── Tentative Topics ── -->
+        <section id="contents">
+            <h2>Tentative Topics</h2>
+            <ol class="toc-list">
+
+                <li>
+                    <span class="toc-title">Automating the Research Workflow</span>
+                    <ul>
+                        <li>Reviewing papers</li>
+                        <li>Copy-editing</li>
+                        <li>Drawing diagrams</li>
+                        <li>Checking equations</li>
+                        <li>Implementing algorithms</li>
+                    </ul>
+                </li>
+
+                <li>
+                    <span class="toc-title">Generating Novel Insights</span>
+                    <ul>
+                        <li>Theorem proving techniques</li>
+                    </ul>
+                </li>
+
+                <li>
+                    <span class="toc-title">Agentic Workflows</span>
+                    <ul>
+                        <li>What are AI agents?</li>
+                        <li>Data science with agents</li>
+                        <li>Theorem proving with agents</li>
+                    </ul>
+                </li>
+
+            </ol>
+        </section>
+
+        <!-- ── Previous Tutorials ── -->
+        <section id="previous">
+            <h2>Previous Editions</h2>
+            <p>Related tutorial slides from earlier presentations:</p>
+            <div class="prev-tutorials">
+                <a class="prev-tutorial-link"
+                   href="https://www.renatoppl.com/slides/ai-tutorial-columbia.pdf"
+                   target="_blank">
+                    <span class="venue-label">📄 Columbia University</span>
+                    <span class="venue-sub">Slides (PDF)</span>
+                </a>
+                <a class="prev-tutorial-link"
+                   href="https://www.renatoppl.com/slides/ai-tutorial-chile.pdf"
+                   target="_blank">
+                    <span class="venue-label">📄 University of Chile</span>
+                    <span class="venue-sub">Slides (PDF)</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ── Workshop ── -->
+        <section id="workshop">
+            <h2>Afternoon Workshop</h2>
+            <div class="workshop-box">
+                <h3>🔬 AI-Driven Research in EconCS — Workshop</h3>
+                <p>
+                    The tutorial will be followed by a <strong>workshop in the afternoon</strong>
+                    (also on July 6 at EC'26 in Rome), bringing together researchers to discuss
+                    open problems, share early-stage work, and explore the frontiers of
+                    AI-assisted research in Economics and Computation.
+                </p>
+                <p style="margin-top: 10px;">
+                    <a href="https://sites.google.com/corp/view/aieconcs26/"
+                       target="_blank">
+                        → Workshop website
+                    </a>
+                </p>
+            </div>
+        </section>
+
+        <!-- ── Footer ── -->
+        <footer style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 0.85em;">
+            <p>
+                Tutorial at <a href="https://ec26.sigecom.org/program/tutorials/" target="_blank">ACM EC'26</a>
+                &mdash; Rome, July 6, 2026.
+            </p>
+        </footer>
+
+    </div>
+</body>
+</html>
