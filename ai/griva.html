@@ -175,13 +175,13 @@ Object.entries(imgEls).forEach(([key, el]) => {
     newGame();
   };
 });
-imgEls.on.src         = 'assets/on.png';
-imgEls.off.src        = 'assets/off.png';
-imgEls.mapLight.src   = 'assets/map_light.png';
-imgEls.onSwitches.src = 'assets/on_switches.png';
+imgEls.on.src         = 'assets/on.webp';
+imgEls.off.src        = 'assets/off.webp';
+imgEls.mapLight.src   = 'assets/map_light.webp';
+imgEls.onSwitches.src = 'assets/on_switches.webp';
 
 // Preload fullscreen images
-['assets/map.png','assets/window.png'].forEach(src => { const i = new Image(); i.src = src; });
+['assets/map.webp','assets/window.webp'].forEach(src => { const i = new Image(); i.src = src; });
 
 function viewportSize() {
   // visualViewport accounts for mobile browser chrome (address bar, keyboard)
@@ -320,13 +320,13 @@ function buildClickRegions() {
     const triggerH = mh - Math.round(mh * 0.75);
     const mapTrigger = makeRegion([mx, triggerY, mw, triggerH], sx, sy, 'Examine map');
     mapTrigger.classList.add('map-bottom');
-    mapTrigger.addEventListener('click', () => showFullscreen('assets/map.png'));
+    mapTrigger.addEventListener('click', () => showFullscreen('assets/map.webp'));
     vp.appendChild(mapTrigger);
 
     // Window mask → fullscreen window.png
     const winDiv = makeRegion(MASKS.window[0], sx, sy, 'Look through window');
     winDiv.classList.add('win-region');
-    winDiv.addEventListener('click', () => showFullscreen('assets/window.png'));
+    winDiv.addEventListener('click', () => showFullscreen('assets/window.webp'));
     vp.appendChild(winDiv);
   }
 }

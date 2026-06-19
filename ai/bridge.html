@@ -174,8 +174,8 @@ Object.entries(imgEls).forEach(([key, el]) => {
     newGame();
   };
 });
-imgEls.on.src  = 'assets/bridge_on.png';
-imgEls.off.src = 'assets/bridge_off.png';
+imgEls.on.src  = 'assets/bridge_on.webp';
+imgEls.off.src = 'assets/bridge_off.webp';
 
 function viewportSize() {
   if (window.visualViewport)
@@ -321,7 +321,7 @@ function buildClickRegions() {
     div.style.top    = (my*sy)+'px';
     div.style.width  = (mw*sx)+'px';
     div.style.height = (mh*sy)+'px';
-    div.addEventListener('click', () => showFullscreen('assets/typewriter.png'));
+    div.addEventListener('click', () => showFullscreen('assets/typewriter.webp'));
     vp.appendChild(div);
   }
 }
@@ -356,7 +356,7 @@ function dismissFullscreen() {
 
 // Preload typewriter image
 const typewriterImg = new Image();
-typewriterImg.src = 'assets/typewriter.png';
+typewriterImg.src = 'assets/typewriter.webp';
 
 function getScale() {
   const r = canvas.getBoundingClientRect();
