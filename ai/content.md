@@ -1,4 +1,4 @@
-![ai](ai_banner_1.png)
+![ai](ai_banner_1.webp)
 # AI Exploration
 
 * [Belbo](belbo.html)
