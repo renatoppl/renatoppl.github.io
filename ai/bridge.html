@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Bridge — Lights Out</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #0e0e18;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    #viewport {
+      position: relative;
+      line-height: 0;
+      border: 3px solid rgba(240,192,64,0.1);
+      border-radius: 6px;
+      box-shadow: 0 0 60px rgba(0,0,0,0.7);
+      overflow: hidden;
+      transition: border-color 0.6s, box-shadow 0.6s;
+    }
+    #viewport.win {
+      border-color: rgba(240,192,64,0.45);
+      box-shadow: 0 0 80px rgba(240,192,64,0.3), 0 0 60px rgba(0,0,0,0.7);
+    }
+
+    canvas { display: block; }
+
+    .click-region {
+      position: absolute;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .click-region.typewriter-region {
+      cursor: zoom-in;
+    }
+
+    /* ── Fullscreen overlay ── */
+    #fullscreen-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+      z-index: 100;
+      background: #000;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      align-items: center;
+      justify-content: center;
+    }
+    #fullscreen-overlay.show {
+      display: flex;
+      animation: fadeIn 0.35s ease;
+    }
+    #fullscreen-overlay.hide {
+      animation: fadeOut 0.25s ease forwards;
+    }
+    @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
+    @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+    #fullscreen-overlay img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    #overlay-hint {
+      position: absolute;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      pointer-events: none;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <!-- Fullscreen image viewer -->
+  <div id="fullscreen-overlay" onclick="dismissFullscreen()">
+    <img id="fullscreen-img" src="" alt="">
+    <div id="overlay-hint">click anywhere to return</div>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  MASKS  (calibrated pixel coordinates [x, y, w, h])
+//  Row-major: buttons[0..4] = row 1, [5..9] = row 2, etc.
+// ═══════════════════════════════════════════════════════════
+const MASKS = {
+  buttons: [
+    // Row 1
+    [ 603, 374, 150, 166],
+    [ 761, 377, 136, 163],
+    [ 905, 386, 133, 158],
+    [1045, 391, 122, 153],
+    [1172, 391, 136, 150],
+    // Row 2
+    [ 597, 560, 151, 163],
+    [ 756, 559, 141, 159],
+    [ 909, 556, 131, 164],
+    [1047, 559, 124, 153],
+    [1177, 552, 131, 156],
+    // Row 3
+    [ 596, 727, 155, 183],
+    [ 756, 727, 148, 174],
+    [ 905, 729, 132, 155],
+    [1048, 719, 122, 157],
+    [1177, 715, 125, 149],
+    // Row 4
+    [ 605, 915, 147, 182],
+    [ 754, 904, 147, 173],
+    [ 906, 901, 132, 158],
+    [1047, 880, 120, 164],
+    [1174, 873, 128, 154],
+    // Row 5
+    [ 596,1102, 151, 173],
+    [ 755,1077, 148, 172],
+    [ 903,1062, 140, 166],
+    [1049,1052, 123, 155],
+    [1181,1037, 121, 145],
+  ],
+  typewriter: [2441, 690, 388, 428]
+};
+
+const N = 5;
+
+// ═══════════════════════════════════════════════════════════
+//  IMAGES
+// ═══════════════════════════════════════════════════════════
+const imgEls  = { on: new Image(), off: new Image() };
+let   imgData = {};
+let   imgW, imgH, loaded = 0;
+
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+
+Object.entries(imgEls).forEach(([key, el]) => {
+  el.onload = () => {
+    if (++loaded < 2) return;
+    imgW = imgEls.on.width;
+    imgH = imgEls.on.height;
+    canvas.width  = imgW;
+    canvas.height = imgH;
+
+    const tmp = document.createElement('canvas');
+    tmp.width = imgW; tmp.height = imgH;
+    const tc = tmp.getContext('2d');
+    ['on','off'].forEach(k => {
+      tc.clearRect(0,0,imgW,imgH);
+      tc.drawImage(imgEls[k],0,0);
+      imgData[k] = tc.getImageData(0,0,imgW,imgH);
+    });
+
+    fitCanvas();
+    newGame();
+  };
+});
+imgEls.on.src  = 'assets/bridge_on.png';
+imgEls.off.src = 'assets/bridge_off.png';
+
+function viewportSize() {
+  if (window.visualViewport)
+    return { w: window.visualViewport.width, h: window.visualViewport.height };
+  return { w: window.innerWidth, h: window.innerHeight };
+}
+
+function fitCanvas() {
+  const { w, h } = viewportSize();
+  const s = Math.min(w / imgW, h / imgH, 1);
+  canvas.style.width  = (imgW * s) + 'px';
+  canvas.style.height = (imgH * s) + 'px';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LIGHTS OUT — square topology (free boundary)
+//
+//  Cross-shaped stamp S = {(0,0),(±1,0),(0,±1)}
+//  Pressing (r,c) toggles (r,c) and its valid orthogonal neighbors.
+//  A = I + Adj(G) over F₂, symmetric, diag = 1.
+//  By Sutner's theorem: Ax = 1 is always solvable.
+//
+//  State: 25 bits, indexed [row * 5 + col], 0 = off, 1 = on.
+//  Start: all 0.  Goal: all 1.
+// ═══════════════════════════════════════════════════════════
+let state = Array(N*N).fill(0);
+let won   = false;
+
+function idx(r, c) { return r * N + c; }
+
+// The cross-shaped neighbors of (r,c) including itself
+function crossNeighbors(r, c) {
+  const out = [idx(r, c)];
+  if (r > 0)     out.push(idx(r-1, c));
+  if (r < N-1)   out.push(idx(r+1, c));
+  if (c > 0)     out.push(idx(r, c-1));
+  if (c < N-1)   out.push(idx(r, c+1));
+  return out;
+}
+
+function newGame() {
+  state = Array(N*N).fill(0);
+  won   = false;
+  document.getElementById('viewport').classList.remove('win');
+  render();
+  buildClickRegions();
+}
+
+function pressButton(i) {
+  if (won) return;
+  const r = Math.floor(i / N);
+  const c = i % N;
+  const nbrs = crossNeighbors(r, c);
+  nbrs.forEach(j => { state[j] ^= 1; });
+  render();
+  checkWin();
+}
+
+function checkWin() {
+  if (state.every(v => v === 1)) {
+    won = true;
+    setTimeout(() => {
+      document.getElementById('viewport').classList.add('win');
+    }, 300);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COMPOSITOR
+// ═══════════════════════════════════════════════════════════
+function render() {
+  if (!imgData.on) return;
+
+  const result = ctx.createImageData(imgW, imgH);
+  const rd = result.data;
+  rd.set(imgData.off.data);   // base = all off
+
+  const onD = imgData.on.data;
+  for (let i = 0; i < N*N; i++) {
+    if (state[i]) copyRegion(rd, onD, MASKS.buttons[i]);
+  }
+
+  ctx.putImageData(result, 0, 0);
+}
+
+function copyRegion(dest, src, mask) {
+  const [mx,my,mw,mh] = mask;
+  const y0 = Math.max(0, my),      y1 = Math.min(imgH, my+mh);
+  const x0 = Math.max(0, mx),      x1 = Math.min(imgW, mx+mw);
+
+  for (let py = y0; py < y1; py++) {
+    for (let px = x0; px < x1; px++) {
+      // Soft 6px rect edge fade
+      const ex = Math.min(px-x0, x1-1-px, 6) / 6;
+      const ey = Math.min(py-y0, y1-1-py, 6) / 6;
+      const t  = Math.max(0, Math.min(ex, ey));
+      const alpha = t*t*(3-2*t);   // smoothstep
+      const idx = (py*imgW + px)*4;
+      if (alpha >= 0.995) {
+        dest[idx]   = src[idx];
+        dest[idx+1] = src[idx+1];
+        dest[idx+2] = src[idx+2];
+        dest[idx+3] = src[idx+3];
+      } else {
+        const ia = 1-alpha;
+        dest[idx]   = (dest[idx]  *ia + src[idx]  *alpha + 0.5)|0;
+        dest[idx+1] = (dest[idx+1]*ia + src[idx+1]*alpha + 0.5)|0;
+        dest[idx+2] = (dest[idx+2]*ia + src[idx+2]*alpha + 0.5)|0;
+        dest[idx+3] = (dest[idx+3]*ia + src[idx+3]*alpha + 0.5)|0;
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLICK REGIONS
+// ═══════════════════════════════════════════════════════════
+function buildClickRegions() {
+  document.querySelectorAll('.click-region').forEach(e => e.remove());
+  const vp = document.getElementById('viewport');
+  const {sx, sy} = getScale();
+
+  MASKS.buttons.forEach((mask, i) => {
+    const [mx,my,mw,mh] = mask;
+    const div = document.createElement('div');
+    div.className  = 'click-region';
+    const r = Math.floor(i/N)+1, c = i%N+1;
+    div.title      = `Button (${r},${c})`;
+    div.style.left   = (mx*sx)+'px';
+    div.style.top    = (my*sy)+'px';
+    div.style.width  = (mw*sx)+'px';
+    div.style.height = (mh*sy)+'px';
+    div.addEventListener('click', () => pressButton(i));
+    vp.appendChild(div);
+  });
+
+  if (MASKS.typewriter) {
+    const [mx,my,mw,mh] = MASKS.typewriter;
+    const div = document.createElement('div');
+    div.className  = 'click-region typewriter-region';
+    div.title      = 'Typewriter';
+    div.style.left   = (mx*sx)+'px';
+    div.style.top    = (my*sy)+'px';
+    div.style.width  = (mw*sx)+'px';
+    div.style.height = (mh*sy)+'px';
+    div.addEventListener('click', () => showFullscreen('assets/typewriter.png'));
+    vp.appendChild(div);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FULLSCREEN VIEWER
+// ═══════════════════════════════════════════════════════════
+let dismissing = false;
+
+function showFullscreen(src) {
+  const overlay = document.getElementById('fullscreen-overlay');
+  document.getElementById('fullscreen-img').src = src;
+  dismissing = false;
+  overlay.classList.remove('hide');
+  overlay.classList.add('show');
+}
+
+function dismissFullscreen() {
+  if (won) {
+    window.location.href = 'gallager.html';
+    return;
+  }
+  if (dismissing) return;
+  dismissing = true;
+  const overlay = document.getElementById('fullscreen-overlay');
+  overlay.classList.add('hide');
+  overlay.addEventListener('animationend', () => {
+    overlay.classList.remove('show','hide');
+    dismissing = false;
+  }, { once: true });
+}
+
+// Preload typewriter image
+const typewriterImg = new Image();
+typewriterImg.src = 'assets/typewriter.png';
+
+function getScale() {
+  const r = canvas.getBoundingClientRect();
+  return { sx: r.width/imgW, sy: r.height/imgH };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════════════════════
+let resizeTimer = null;
+function onResize() {
+  if (!imgW) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { fitCanvas(); buildClickRegions(); }, 60);
+}
+window.addEventListener('resize', onResize);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
+</script>
+</body>
+</html>

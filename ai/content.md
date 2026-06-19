@@ -1,7 +1,9 @@
 ![ai](ai_banner_1.png)
 # AI Exploration
 
-*Under construction...*
+* [Belbo](belbo.html)
+* [Griva](griva.html)
+* [Bridge](bridge.html)
 
 <!--
 Exploring theorem proving like $\int_{\partial B} f = \int_B \partial f$

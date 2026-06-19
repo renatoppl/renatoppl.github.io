@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lights Out on Surfaces</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+<style>
+  :root{
+    --ink:#333;
+    --muted:#666;
+    --rule:#e2e2e2;
+    --amber:#f0c040;
+    --link:#2c5aa0;
+    --thmbg:#fafafa;
+    --thmborder:#cfcfcf;
+  }
+
+  html,body{
+    background:#ffffff;
+    color:var(--ink);
+    margin:0;
+    padding:0;
+  }
+
+  body{
+    font-family:'CMU Serif','Latin Modern Roman',Georgia,'Times New Roman',serif;
+    font-size:18px;
+    line-height:1.6;
+  }
+
+  .container{
+    max-width:800px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  /* ---------- Title block ---------- */
+  .titleblock{ text-align:center; margin:24px 0 36px; }
+  h1.title{
+    font-size:2.05em;
+    font-weight:700;
+    line-height:1.2;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    font-size:1.15em;
+    color:var(--muted);
+    font-style:italic;
+    margin-bottom:18px;
+  }
+  .byline{ color:var(--muted); font-size:0.95em; }
+
+  /* ---------- Abstract ---------- */
+  .abstract{
+    margin:30px 10px 40px;
+    font-size:0.97em;
+    line-height:1.55;
+  }
+  .abstract .ab-head{
+    text-align:center;
+    font-variant:small-caps;
+    letter-spacing:0.05em;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+
+  /* ---------- Headings ---------- */
+  h2{
+    font-size:1.45em;
+    font-weight:700;
+    margin:2.2em 0 0.6em;
+    line-height:1.25;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:4px;
+  }
+  h3{
+    font-size:1.15em;
+    font-weight:700;
+    font-style:italic;
+    margin:1.6em 0 0.5em;
+  }
+  .secnum{ color:var(--muted); font-weight:700; margin-right:0.4em; }
+
+  p{ margin:0 0 1em; }
+
+  a{ color:var(--link); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+
+  /* ---------- Theorem environments ---------- */
+  .thm,.lem,.cor,.prop,.defn,.rem,.proof{
+    margin:1.3em 0;
+    padding:0.7em 1em 0.7em 1em;
+    border-left:3px solid var(--thmborder);
+    background:var(--thmbg);
+    border-radius:0 4px 4px 0;
+  }
+  .thm,.lem,.cor,.prop{ border-left-color:#9fb3d1; }
+  .defn{ border-left-color:#b7c9a8; }
+  .rem{ border-left-color:#d8c9a0; background:#fcfbf7; }
+  .proof{
+    background:transparent;
+    border-left:2px solid var(--rule);
+    padding:0.2em 1em;
+    margin:1.1em 0;
+  }
+  .thmhead{ font-weight:700; }
+  .thmbody-it{ font-style:italic; }
+  .thm .thmbody-it,.lem .thmbody-it,.cor .thmbody-it,.prop .thmbody-it{ font-style:italic; }
+  .proof .ph{ font-style:italic; }
+  .qed{ float:right; }
+  .proof::after{ content:""; display:block; clear:both; }
+
+  ul,ol{ margin:0 0 1em; padding-left:1.5em; }
+  li{ margin:0.3em 0; }
+
+  /* ---------- Figures ---------- */
+  figure{ margin:1.8em 0; text-align:center; }
+  figcaption{
+    font-size:0.88em;
+    color:var(--muted);
+    margin-top:0.8em;
+    line-height:1.45;
+    text-align:left;
+    padding:0 8px;
+  }
+  figcaption .fnum{ font-weight:700; color:var(--ink); }
+
+  /* cross stamp diagram */
+  .stamp{
+    display:inline-grid;
+    grid-template-columns:repeat(3,30px);
+    grid-template-rows:repeat(3,30px);
+    gap:0;
+    border:1px solid #bbb;
+  }
+  .stamp div{
+    border:0.5px solid #cfcfcf;
+    box-sizing:border-box;
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.8em;color:#3a4d75;
+  }
+  .stamp div.on{ background:rgba(120,150,200,0.35); }
+
+  /* topology grid of svgs */
+  .topo-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px 14px;
+    margin:0 auto;
+    max-width:560px;
+  }
+  .topo-cell{ text-align:center; }
+  .topo-cell svg{ display:block; margin:0 auto; }
+  .topo-label{ font-size:0.85em; margin-top:4px; color:var(--ink); }
+
+  /* ---------- Tables ---------- */
+  table.bt{
+    border-collapse:collapse;
+    margin:0.5em auto;
+    font-size:0.92em;
+  }
+  table.bt caption{
+    caption-side:bottom;
+    font-size:0.88em;
+    color:var(--muted);
+    margin-top:0.7em;
+    text-align:left;
+    padding:0 6px;
+  }
+  table.bt th,table.bt td{ padding:6px 14px; text-align:center; }
+  table.bt thead th{ border-bottom:1.3px solid var(--ink); font-weight:700; }
+  table.bt tbody tr:first-child td{ padding-top:9px; }
+  table.bt.toprule{ border-top:1.3px solid var(--ink); }
+  table.bt tbody{ border-bottom:1.3px solid var(--ink); }
+  table.bt td.lcell,table.bt th.lcell{ text-align:left; }
+  table.bt td.mono{ font-family:'SF Mono',Menlo,Consolas,monospace; font-size:0.92em; letter-spacing:0.06em; }
+
+  /* ---------- Interactive game ---------- */
+  .game{
+    margin:2.2em 0;
+    padding:22px 22px 26px;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    background:#fbfbfb;
+    text-align:center;
+  }
+  .game h3{ margin-top:0; font-style:normal; }
+  .game .controls{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+    margin-bottom:14px;
+  }
+  .game .group{
+    display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+    justify-content:center;
+  }
+  .game .group .gl{ font-size:0.82em; color:var(--muted); margin-right:2px; }
+  .btn{
+    font-family:inherit;
+    font-size:0.86em;
+    padding:6px 12px;
+    border:1px solid #c4c4c4;
+    background:#fff;
+    color:var(--ink);
+    border-radius:5px;
+    cursor:pointer;
+    transition:background .12s,border-color .12s,color .12s;
+  }
+  .btn:hover{ background:#f0f0f0; }
+  .btn.active{ background:#3a4d75; border-color:#3a4d75; color:#fff; }
+  .btn.action{ border-color:#9fb3d1; }
+  .btn.action:hover{ background:#eaf0f8; }
+  select.btn{ padding:6px 8px; }
+
+  #gameWrap{ display:inline-block; position:relative; }
+  #gameCanvas{ touch-action:manipulation; cursor:pointer; border-radius:6px; }
+  .game .status{
+    margin-top:12px; font-size:0.9em; color:var(--muted);
+    min-height:1.4em;
+  }
+  .game .status.win{ color:#b8860b; font-weight:700; font-style:italic; }
+  .game .meta{ font-size:0.85em; color:var(--muted); margin-top:6px; }
+  .playlink{ margin-top:14px; font-size:0.92em; }
+
+  /* worked solution mini grids */
+  .worked-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:22px 16px;
+    max-width:620px;
+    margin:0 auto;
+  }
+  .mini{ text-align:center; }
+  .mini canvas{ display:block; margin:0 auto 6px; border-radius:4px; }
+  .mini .ml{ font-size:0.85em; }
+  .mini .vbtn{ font-size:0.78em; padding:3px 9px; margin-top:2px; }
+  .mini .vres{ font-size:0.78em; color:var(--muted); min-height:1.1em; margin-top:3px; }
+  .mini .vres.ok{ color:#2e7d32; }
+  .mini .vres.bad{ color:#c0392b; }
+
+  .references{ font-size:0.9em; }
+  .references ol{ padding-left:1.6em; }
+  .references li{ margin:0.45em 0; }
+
+  hr.sep{ border:0; border-top:1px solid var(--rule); margin:2.4em 0; }
+
+  @media (max-width:560px){
+    .topo-grid{ grid-template-columns:repeat(2,1fr); }
+    .worked-grid{ grid-template-columns:repeat(2,1fr); }
+    body{ font-size:17px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="titleblock">
+    <h1 class="title">Lights Out on Surfaces</h1>
+    <div class="subtitle">Solvability of a Linear Switching Game over \(\mathbb{F}_2\)</div>
+  </div>
+
+  <div class="abstract">
+    <div class="ab-head">Abstract</div>
+    <p><span style="font-variant:small-caps;">Lights Out</span> is a switch-setting puzzle
+    that is, at heart, a system of linear equations over the two-element field \(\mathbb{F}_2\).
+    We set up that dictionary, then play the game on six surfaces obtained by gluing the edges
+    of a square&mdash;the <em>square</em>, <em>cylinder</em>, <em>torus</em>,
+    <em>M&ouml;bius strip</em>, <em>Klein bottle</em>, and <em>projective plane</em>. A two-line
+    linear-algebra argument (Sutner's theorem) shows that on <em>every</em> one of them the
+    all-on board can always be reached from the all-off board, for every size. Finally we
+    replace the cross-shaped button with an arbitrary stamp and characterize solvability through
+    two parity invariants of the toggle matrix; on the boundaryless surfaces this collapses to a
+    clean statement about the parity of the stamp size.</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1 -->
+  <!-- ============================================================ -->
+  <h2><span class="secnum">1</span>The game as linear algebra over \(\mathbb{F}_2\)</h2>
+
+  <p>A <span style="font-variant:small-caps;">Lights Out</span> board is a finite set \(V\) of
+  cells; each cell carries a light (on/off) and a button. Pressing the button at a cell \(v\)
+  toggles the light at \(v\) <em>and</em> the lights at all cells adjacent to \(v\)&mdash;the
+  <em>closed neighborhood</em> \(N[v]=\{v\}\cup\{u:u\sim v\}\). The original commercial puzzle
+  (Tiger Electronics, 1995) is the \(5\times5\) grid in which a press flips a plus-shaped patch
+  of five lights:</p>
+
+  <figure>
+    <div class="stamp" aria-hidden="true">
+      <div></div><div class="on"></div><div></div>
+      <div class="on"></div><div class="on">&lowast;</div><div class="on"></div>
+      <div></div><div class="on"></div><div></div>
+    </div>
+  </figure>
+
+  <p>Work over \(\mathbb{F}_2=\{0,1\}\), writing \(1\) for &ldquo;on&rdquo; and \(0\) for
+  &ldquo;off.&rdquo; Two observations make the puzzle linear. First, toggling is its own inverse,
+  so pressing a button twice is the same as not pressing it; a <em>strategy</em> is therefore
+  just a subset of buttons, recorded as a vector \(x\in\mathbb{F}_2^{V}\). Second, the toggles
+  add modulo \(2\) and commute, so the order of presses is irrelevant. Collecting the effect of
+  each single press into a matrix,</p>
+
+  \[
+    A\in\mathbb{F}_2^{V\times V},\qquad
+    A_{uv}=\begin{cases}1,& u\in N[v],\\ 0,&\text{otherwise,}\end{cases}
+    \qquad\text{equivalently } A=I+\mathrm{Adj}(G),
+  \]
+
+  <p>where \(G=(V,E)\) is the board's adjacency graph, pressing the set \(x\) changes the state
+  \(s\) to \(s+Ax\). Note \(A\) is symmetric (adjacency is symmetric) and has an all-ones
+  diagonal (every press toggles its own light).</p>
+
+  <p>Starting from all-off (\(s=\mathbf{0}\)) and aiming for all-on (\(s=\mathbf{1}\)) thus
+  amounts to solving</p>
+
+  \[ A x=\mathbf{1} \qquad\text{over }\mathbb{F}_2 . \tag{1} \]
+
+  <div class="defn">
+    <span class="thmhead">Definition 1.</span> The all-on board is <em>reachable</em> (the
+    instance is <em>solvable</em>) iff \(\mathbf{1}\in\operatorname{Im}(A)\). Vectors in
+    \(\ker(A)\) are called <em>quiet patterns</em>: pressing such a set changes nothing.
+  </div>
+
+  <p>Solvability is governed by a Fredholm-type alternative that we will use repeatedly.</p>
+
+  <div class="lem">
+    <span class="thmhead">Lemma 2 (Solvability criterion).</span>
+    <span class="thmbody-it"> For any \(A\in\mathbb{F}_2^{m\times m}\) and the standard form
+    \(\langle u,v\rangle=u^{\top}v\),
+    \[
+      \operatorname{Im}(A)=\bigl(\ker(A^{\top})\bigr)^{\perp}
+        =\{\,y:\langle k,y\rangle=0\ \text{for all }k\in\ker(A^{\top})\,\}.
+    \]
+    In particular, if \(A\) is symmetric then \(Ax=b\) is solvable iff \(b\) is orthogonal to
+    every quiet pattern.</span>
+  </div>
+
+  <div class="proof">
+    <span class="ph">Proof.</span> If \(y=Ax\) and \(A^{\top}k=0\), then
+    \(\langle k,y\rangle=k^{\top}Ax=(A^{\top}k)^{\top}x=0\), so
+    \(\operatorname{Im}(A)\subseteq(\ker A^{\top})^{\perp}\). Equality follows by dimension: over
+    any field \(\dim W+\dim W^{\perp}=m\), hence
+    \(\dim(\ker A^{\top})^{\perp}=m-\dim\ker A^{\top}=\operatorname{rank}A^{\top}
+    =\operatorname{rank}A=\dim\operatorname{Im}(A)\). A subspace contained in another of the same
+    dimension equals it. (The argument is valid over \(\mathbb{F}_2\), even though there \(W\) may
+    meet \(W^{\perp}\).) <span class="qed">&#9633;</span>
+  </div>
+
+  <div class="rem">
+    <span class="thmhead">Remark 3.</span> When (1) is solvable it has exactly
+    \(|\ker A|=2^{\dim\ker A}\) solutions, and \(A\) is invertible exactly when <em>every</em>
+    target is reachable by a unique strategy. The quiet patterns are the only obstruction to
+    solvability.
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2 -->
+  <!-- ============================================================ -->
+  <h2><span class="secnum">2</span>Six topologies</h2>
+
+  <p>We keep the cross-shaped button but change the board's adjacency by identifying the edges of
+  the fundamental square, producing six surfaces. Throughout, the board is the \(n\times n\)
+  array of cells, indexed by \((r,c)\) with \(0\le r,c\le n-1\); the topology specifies how the
+  four orthogonal neighbors are computed near the boundary. Each identification we use is an
+  involution, so the resulting adjacency graph \(G\) is simple and symmetric.</p>
+
+  <figure>
+    <div class="topo-grid" id="topoGrid"></div>
+    <figcaption><span class="fnum">Figure 1.</span> Edge identifications of the fundamental
+    square. Matching colors are glued; the arrow direction encodes orientation, so a reversed
+    arrow means a glued-with-a-flip (twisted) seam. Unmarked edges are free boundary.</figcaption>
+  </figure>
+
+  <ul>
+    <li><strong>Square:</strong> no identification; the four sides are free boundary.</li>
+    <li><strong>Cylinder:</strong> the left and right edges are glued directly (columns wrap,
+      \(c\mapsto c\bmod n\)); top and bottom remain boundary.</li>
+    <li><strong>M&ouml;bius strip:</strong> left and right glued with a flip&mdash;crossing the
+      seam sends \((r,n)\mapsto(n{-}1{-}r,0)\); top and bottom remain boundary.</li>
+    <li><strong>Torus:</strong> both pairs glued directly; every neighbor wraps, \((r,c)\) has
+      degree \(4\).</li>
+    <li><strong>Klein bottle:</strong> top and bottom glued directly, left and right glued with a
+      flip; both directions wrap, degree \(4\).</li>
+    <li><strong>Projective plane:</strong> both pairs glued with a flip (the antipodal gluing
+      \(abab\)); both directions wrap.</li>
+  </ul>
+
+  <p>The point of Figure 1 for us is modest: whatever the gluing, the board is still a finite
+  simple graph in which a button toggles itself and its neighbors. That is all the next section
+  needs.</p>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3 -->
+  <!-- ============================================================ -->
+  <h2><span class="secnum">3</span>Every topology is solvable</h2>
+
+  <p>We prove that the all-on board is always reachable from the all-off board&mdash;on all six
+  surfaces, at every size. The heart of the matter is a one-line identity in characteristic
+  two.</p>
+
+  <div class="lem">
+    <span class="thmhead">Lemma 4 (Diagonal lemma).</span>
+    <span class="thmbody-it"> Let \(A\in\mathbb{F}_2^{m\times m}\) be symmetric. Then for every
+    \(k\in\mathbb{F}_2^{m}\),
+    \[ k^{\top}Ak=\sum_{i}A_{ii}\,k_i=\langle\operatorname{diag}(A),k\rangle. \]</span>
+  </div>
+
+  <div class="proof">
+    <span class="ph">Proof.</span> Expand \(k^{\top}Ak=\sum_{i,j}A_{ij}k_ik_j\). The
+    off-diagonal part is
+    \(\sum_{i&lt;j}(A_{ij}+A_{ji})k_ik_j=\sum_{i&lt;j}2A_{ij}k_ik_j=0\) in \(\mathbb{F}_2\), using
+    \(A_{ij}=A_{ji}\). The diagonal part is \(\sum_i A_{ii}k_i^2=\sum_i A_{ii}k_i\) since
+    \(k_i^2=k_i\). <span class="qed">&#9633;</span>
+  </div>
+
+  <div class="cor">
+    <span class="thmhead">Corollary 5.</span>
+    <span class="thmbody-it"> If \(A\) is symmetric with \(\operatorname{diag}(A)=\mathbf{1}\),
+    then every quiet pattern \(k\in\ker(A)\) has an even number of \(1\)'s, i.e.\
+    \(\langle\mathbf{1},k\rangle=0\).</span>
+  </div>
+
+  <div class="proof">
+    <span class="ph">Proof.</span> Take \(k\in\ker A\). By Lemma 4,
+    \(\langle\mathbf{1},k\rangle=\langle\operatorname{diag}A,k\rangle=k^{\top}Ak=k^{\top}(Ak)
+    =k^{\top}\mathbf{0}=0.\) <span class="qed">&#9633;</span>
+  </div>
+
+  <div class="thm">
+    <span class="thmhead">Theorem 6 (Sutner).</span>
+    <span class="thmbody-it"> Let \(G\) be any finite simple graph and \(A=I+\mathrm{Adj}(G)\) its
+    closed-neighborhood matrix over \(\mathbb{F}_2\). Then \(Ax=\mathbf{1}\) is solvable: the
+    all-on configuration is always reachable from all-off.</span>
+  </div>
+
+  <div class="proof">
+    <span class="ph">Proof.</span> \(A\) is symmetric (adjacency is symmetric) and has
+    \(\operatorname{diag}(A)=\mathbf{1}\) (each vertex lies in its own closed neighborhood). By
+    Corollary 5 every quiet pattern is orthogonal to \(\mathbf{1}\), so
+    \(\mathbf{1}\in(\ker A)^{\perp}=\operatorname{Im}(A)\) by Lemma 2.
+    <span class="qed">&#9633;</span>
+  </div>
+
+  <div class="cor">
+    <span class="thmhead">Corollary 7.</span>
+    <span class="thmbody-it"> On each of the six boards of Section 2, for every \(n\), the all-on
+    board can be reached from the all-off board.</span>
+  </div>
+
+  <div class="proof">
+    <span class="ph">Proof.</span> Every topology defines a finite simple graph \(G\) on the
+    \(n^{2}\) cells; the only thing to check is that the twisted seams of the M&ouml;bius strip,
+    Klein bottle, and projective plane still give a <em>symmetric</em> adjacency, which holds
+    because each seam map is an involution: e.g.\ on the M&ouml;bius strip the right-neighbor rule
+    \((r,n)\mapsto(n{-}1{-}r,0)\) has inverse \((n{-}1{-}r,0)\mapsto(r,n)\), so \(u\sim v\) iff
+    \(v\sim u\). Theorem 6 then applies. <span class="qed">&#9633;</span>
+  </div>
+
+  <div class="rem">
+    <span class="thmhead">Remark 8 (An explicit witness).</span> Pressing <em>every</em> button
+    gives \(A\mathbf{1}=\mathbf{1}+\mathrm{Adj}(G)\mathbf{1}=\mathbf{1}+(\deg \bmod 2)\). So
+    &ldquo;press everything&rdquo; is itself a solution exactly when every closed neighborhood has
+    odd size, i.e.\ every vertex has even degree. This holds on the torus and the Klein bottle
+    (degree \(4\) everywhere, \(n\ge3\)), where the all-on board is cleared by a single sweep. On
+    the square, cylinder, M&ouml;bius strip, and projective plane some cells have odd degree, so
+    &ldquo;press everything&rdquo; fails&mdash;yet Theorem 6 still guarantees a (less obvious)
+    solution.
+  </div>
+
+  <div class="rem">
+    <span class="thmhead">Remark 9.</span> Nothing in the proof used the grid: Theorem 6 is
+    Sutner's classical result that the all-ones problem is solvable on <em>any</em> graph.
+    Topology is therefore irrelevant to <em>feasibility</em>; it governs only what lies
+    downstream&mdash;the dimension \(\dim\ker A\), hence the number of solutions
+    \(2^{\dim\ker A}\) and whether the solution is unique.
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- INTERACTIVE GAME -->
+  <!-- ============================================================ -->
+  <div class="game">
+    <h3>Play it</h3>
+    <p style="font-size:0.92em;color:var(--muted);margin:0 auto 16px;max-width:560px;">
+      Turn every light on. Click a cell to toggle it and its orthogonal neighbors. Change the
+      topology to see how neighbors wrap across the glued edges&mdash;and use <em>Solve</em> to
+      let Gaussian elimination over \(\mathbb{F}_2\) find a winning set of presses.</p>
+
+    <div class="controls">
+      <div class="group">
+        <span class="gl">topology</span>
+        <button class="btn topo active" data-topo="square">Square</button>
+        <button class="btn topo" data-topo="cylinder">Cylinder</button>
+        <button class="btn topo" data-topo="mobius">M&ouml;bius</button>
+        <button class="btn topo" data-topo="torus">Torus</button>
+        <button class="btn topo" data-topo="klein">Klein bottle</button>
+        <button class="btn topo" data-topo="projective">Projective plane</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="group">
+        <span class="gl">size</span>
+        <select class="btn" id="sizeSel">
+          <option value="3">3 &times; 3</option>
+          <option value="4">4 &times; 4</option>
+          <option value="5" selected>5 &times; 5</option>
+          <option value="6">6 &times; 6</option>
+          <option value="7">7 &times; 7</option>
+        </select>
+      </div>
+      <div class="group">
+        <button class="btn action" id="resetBtn">Reset</button>
+        <button class="btn action" id="solveBtn">Solve</button>
+        <button class="btn action" id="hintBtn">Show solution</button>
+      </div>
+    </div>
+
+    <div id="gameWrap">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="meta">Moves: <span id="moveCount">0</span></div>
+    <div class="status" id="gameStatus">All lights off &mdash; switch them on.</div>
+
+    <div class="playlink">
+      You can also play the <a href="bridge.html">illustrated version on the ship's
+      bridge</a>.
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4 -->
+  <!-- ============================================================ -->
+  <h2><span class="secnum">4</span>Worked solutions on the \(5\times5\) board</h2>
+
+  <p>To make Theorem 6 concrete, Figure 2 gives an explicit button set solving
+  \(Ax=\mathbf{1}\) on the \(5\times5\) board for each topology, obtained by Gaussian elimination
+  over \(\mathbb{F}_2\). A filled cell is a button to press; pressing exactly the filled cells
+  turns the all-off board fully on. The symmetric topologies inherit visibly symmetric solutions,
+  and the more constrained boards (larger \(\ker A\)) admit many alternatives&mdash;on the torus
+  and Klein bottle, for instance, &ldquo;press everything&rdquo; also works, though elimination
+  returns the sparser patterns shown. Press <em>Verify</em> on any board to replay the presses and
+  confirm the board turns fully on.</p>
+
+  <figure>
+    <div class="worked-grid" id="workedGrid"></div>
+    <figcaption><span class="fnum">Figure 2.</span> Buttons to press (filled) to drive the
+    all-off \(5\times5\) board to all-on, one solution per topology. Each was verified to satisfy
+    \(Ax=\mathbf{1}\).</figcaption>
+  </figure>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5 -->
+  <!-- ============================================================ -->
+  <h2><span class="secnum">5</span>Arbitrary stamps</h2>
+
+  <p>Now replace the cross by an arbitrary <em>stamp</em>: a finite set
+  \(S\subseteq\mathbb{Z}^{2}\) of offsets. Pressing the button at cell \(p\) toggles every light
+  \(p+s\) for \(s\in S\) (read through the topology's identifications, and dropping offsets that
+  fall off a free boundary). The toggle matrix becomes</p>
+
+  \[ A_{uv}=\mathbf{1}\bigl[\,u-v\in S\,\bigr] \]
+
+  <p>on a boundaryless board, and a truncated version of this near free edges. The cross is the
+  stamp \(S=\{(0,0),(\pm1,0),(0,\pm1)\}\). We assume the stamp is smaller than the board, so on a
+  boundaryless surface it never wraps onto itself.</p>
+
+  <p>The right invariants are the row and column weights of \(A\):</p>
+
+  \[
+    (A\mathbf{1})_u=\#\{\text{buttons toggling light }u\},\qquad
+    (A^{\top}\mathbf{1})_v=\#\{\text{lights toggled by button }v\}.
+  \]
+
+  <div class="lem">
+    <span class="thmhead">Lemma 10.</span>
+    <span class="thmbody-it"> Let \(A\in\mathbb{F}_2^{m\times m}\) with \(m=n^{2}\).</span>
+    <ul style="font-style:normal;">
+      <li><strong>(A)</strong> If \(A\mathbf{1}=\mathbf{1}\) (every light is toggled by an
+        <em>odd</em> number of buttons), then \(Ax=\mathbf{1}\) is solvable.</li>
+      <li><strong>(B)</strong> If \(A^{\top}\mathbf{1}=\mathbf{0}\) (every button toggles an
+        <em>even</em> number of lights), then \(\operatorname{Im}(A)\) contains only even-weight
+        vectors; hence \(Ax=\mathbf{1}\) is <em>unsolvable</em> whenever \(n^{2}\) is odd.</li>
+    </ul>
+  </div>
+
+  <div class="proof">
+    <span class="ph">Proof.</span> (A) For \(k\in\ker(A^{\top})\),
+    \(\langle\mathbf{1},k\rangle=\langle A\mathbf{1},k\rangle=\mathbf{1}^{\top}A^{\top}k
+    =\mathbf{1}^{\top}\mathbf{0}=0\), so \(\mathbf{1}\perp\ker(A^{\top})\) and Lemma 2 gives
+    \(\mathbf{1}\in\operatorname{Im}(A)\). (B) If \(\mathbf{1}=Ax\) then
+    \(\langle\mathbf{1},\mathbf{1}\rangle=\langle\mathbf{1},Ax\rangle
+    =\langle A^{\top}\mathbf{1},x\rangle=0\), while
+    \(\langle\mathbf{1},\mathbf{1}\rangle=n^{2}\bmod 2\); so \(n^{2}\) must be even.
+    <span class="qed">&#9633;</span>
+  </div>
+
+  <h3>Boundaryless surfaces: the parity dichotomy</h3>
+
+  <p>On the torus and the Klein bottle there is no free boundary, and a stamp that fits hits each
+  light by exactly \(|S|\) buttons and each button hits exactly \(|S|\) lights:
+  \(A\mathbf{1}=A^{\top}\mathbf{1}=(|S|\bmod 2)\,\mathbf{1}\). Lemma 10 then gives a clean
+  dichotomy.</p>
+
+  <div class="thm">
+    <span class="thmhead">Theorem 11.</span>
+    <span class="thmbody-it"> On the torus and on the Klein bottle, for a stamp \(S\) that fits
+    inside the board:
+    \[
+      |S|\ \text{odd}\ \Longrightarrow\ \text{solvable for every }n;\qquad
+      |S|\ \text{even}\ \Longrightarrow\ \text{unsolvable for every odd }n.
+    \]</span>
+  </div>
+
+  <p>The Klein bottle's twist only permutes <em>which</em> buttons hit a light, never <em>how
+  many</em>, so it behaves exactly like the torus. (For even \(|S|\) on an even board the
+  size-parity obstruction vanishes and solvability depends on finer arithmetic of \(S\).)</p>
+
+  <div class="rem">
+    <span class="thmhead">Remark 12 (The augmentation map).</span> Readers fluent in group algebras
+    will recognize the proof of Theorem 11 as the <em>augmentation</em> argument with its
+    scaffolding removed. Identify \(\mathbb{F}_2^{\mathbb{Z}_n^2}\) with
+    \(R=\mathbb{F}_2[\mathbb{Z}_n^2]\cong\mathbb{F}_2[x,y]/(x^n{-}1,y^n{-}1)\); then \(A\) is
+    multiplication by the stamp polynomial \(s=\sum_{(a,b)\in S}x^a y^b\), the all-ones target is
+    \(u=\sum_g g\), and the functional \(\langle\mathbf{1},\cdot\rangle\) is precisely the
+    augmentation homomorphism \(\varepsilon\colon R\to\mathbb{F}_2\),
+    \(\varepsilon(\sum c_g g)=\sum c_g\), with \(\varepsilon(s)=|S|\bmod 2\). The constancy of the
+    row/column sums used above is nothing but the homomorphism identity
+    \(\varepsilon(sf)=\varepsilon(s)\varepsilon(f)\). Lemma 10(A,B) thus already contain the
+    augmentation argument and are strictly more elementary, needing only
+    \(\langle\mathbf{1},Ax\rangle=\langle A^{\top}\mathbf{1},x\rangle\); we keep that form.
+  </div>
+
+  <h3>Bounded surfaces: truncation breaks the rule</h3>
+
+  <p>On the square, cylinder, and M&ouml;bius strip, offsets falling off a free edge are dropped,
+  so boundary row/column weights sink below \(|S|\) and their parities are no longer controlled by
+  \(|S|\). Lemma 10 still applies&mdash;to the <em>truncated</em> weights&mdash;but the size-parity
+  statement of Theorem 11 fails in general. What survives unconditionally is the symmetric special
+  case, which is exactly Theorem 6 applied to the stamp's own graph and is robust to truncation
+  (clipping preserves both symmetry and the unit diagonal):</p>
+
+  <div class="prop">
+    <span class="thmhead">Proposition 13.</span>
+    <span class="thmbody-it"> If the stamp is centrally symmetric, \(S=-S\), and contains its
+    center, \(0\in S\), then \(Ax=\mathbf{1}\) is solvable on <em>every</em> topology, for every
+    \(n\). (Such a stamp automatically has odd size in \(\mathbb{Z}^{2}\), since its non-central
+    cells pair off as \(\{s,-s\}\).)</span>
+  </div>
+
+  <p>Table 1 reports exact solvability (by Gaussian elimination over \(\mathbb{F}_2\)) for several
+  stamps across all five flat topologies and \(n=3,\dots,7\); each entry is a string of
+  <span style="font-family:monospace;">Y</span>/<span style="font-family:monospace;">N</span> for
+  those five sizes.</p>
+
+  <figure>
+    <table class="bt toprule">
+      <thead>
+        <tr>
+          <th class="lcell">stamp</th>
+          <th>square</th><th>cylinder</th><th>M&ouml;bius</th><th>torus</th><th>Klein</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="lcell">cross, \(|S|{=}5\) (sym+center)</td>
+          <td class="mono">YYYYY</td><td class="mono">YYYYY</td><td class="mono">YYYYY</td>
+          <td class="mono">YYYYY</td><td class="mono">YYYYY</td>
+        </tr>
+        <tr>
+          <td class="lcell">horiz. tromino, \(|S|{=}3\) (sym)</td>
+          <td class="mono">YYYYY</td><td class="mono">YYYYY</td><td class="mono">YYYYY</td>
+          <td class="mono">YYYYY</td><td class="mono">YYYYY</td>
+        </tr>
+        <tr>
+          <td class="lcell">L-tromino, \(|S|{=}3\) (asym)</td>
+          <td class="mono">YYYYY</td><td class="mono">NNNNN</td><td class="mono">YNYYN</td>
+          <td class="mono">YYYYY</td><td class="mono">YYYYY</td>
+        </tr>
+        <tr>
+          <td class="lcell">vertical domino, \(|S|{=}2\)</td>
+          <td class="mono">YYYYY</td><td class="mono">YYYYY</td><td class="mono">YYYYY</td>
+          <td class="mono">NYNYN</td><td class="mono">NYNYN</td>
+        </tr>
+        <tr>
+          <td class="lcell">\(2{\times}2\) block, \(|S|{=}4\)</td>
+          <td class="mono">YYYYY</td><td class="mono">NYNYN</td><td class="mono">NYNYN</td>
+          <td class="mono">NYNYN</td><td class="mono">NYNYN</td>
+        </tr>
+      </tbody>
+    </table>
+    <figcaption style="text-align:center;"><span class="fnum">Table 1.</span> Solvability of
+    \(Ax=\mathbf{1}\); entries are <span style="font-family:monospace;">Y</span>/<span
+    style="font-family:monospace;">N</span> for \(n=3,4,5,6,7\).</figcaption>
+  </figure>
+
+  <p>Three lessons read off the table:</p>
+  <ul>
+    <li><em>The odd-size guarantee is local to the boundaryless surfaces.</em> The asymmetric
+      L-tromino (\(|S|=3\)) is unsolvable on the cylinder for every \(n\) and size-dependent on the
+      M&ouml;bius strip, because truncation turns a boundary light's toggle-count even and defeats
+      Lemma 10(A).</li>
+    <li><em>So is the even-size obstruction.</em> The vertical domino (\(|S|=2\)) becomes solvable
+      on the square, cylinder, and M&ouml;bius strip: a bottom-row button loses its lower cell and
+      toggles just one light (odd), so columns are no longer all even and Lemma 10(B) no longer
+      bites.</li>
+    <li><em>But parity can survive truncation.</em> The \(2\times2\) block (\(|S|=4\)) keeps every
+      column even even after clipping (a boundary button loses an even chunk), so the cylinder and
+      M&ouml;bius strip still inherit the torus dichotomy.</li>
+  </ul>
+
+  <p>The unifying objects are the parity vectors \(A\mathbf{1}\) and \(A^{\top}\mathbf{1}\); the
+  quantity \(|S|\bmod 2\) is merely their boundaryless shadow. The cross owes its universal
+  solvability not to its size but to being centrally symmetric and containing its center
+  (Proposition 13)&mdash;which is why the horizontal and vertical trominoes, also
+  symmetric-with-center, succeed everywhere, while the merely odd-sized L-tromino does not.</p>
+
+  <hr class="sep">
+
+  <!-- ============================================================ -->
+  <!-- SUMMARY -->
+  <!-- ============================================================ -->
+  <h2>Summary</h2>
+
+  <figure>
+    <table class="bt toprule">
+      <thead>
+        <tr>
+          <th class="lcell">topology</th>
+          <th class="lcell">governing criterion for solvability of \(Ax=\mathbf{1}\)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="lcell">torus, Klein bottle</td>
+          <td class="lcell">clean \(|S|\)-parity: odd \(\Rightarrow\) all \(n\); even
+            \(\Rightarrow\) fails on odd \(n\)</td>
+        </tr>
+        <tr>
+          <td class="lcell">cylinder, M&ouml;bius strip</td>
+          <td class="lcell">truncated-weight version of Lemma 10; \(|S|\)-parity holds only when
+            the stamp does not truncate oddly against the free edges</td>
+        </tr>
+        <tr>
+          <td class="lcell">square</td>
+          <td class="lcell">\(|S|\)-parity generally invalid; the symmetric-with-center class
+            (Prop. 13) is guaranteed for all \(n\)</td>
+        </tr>
+      </tbody>
+    </table>
+  </figure>
+
+  <p>For the cross specifically&mdash;and indeed for any centrally symmetric stamp containing its
+  center&mdash;all six surfaces are solvable for every size, by the single diagonal-lemma argument
+  of Theorem 6.</p>
+
+  <div class="references">
+    <h2>References</h2>
+    <ol>
+      <li>K.&nbsp;Sutner, <em>Linear cellular automata and the Garden-of-Eden</em>, Math.
+        Intelligencer <strong>11</strong> (1989), 49&ndash;53.</li>
+      <li>K.&nbsp;Sutner, <em>The \(\sigma\)-game and cellular automata</em>, Amer. Math. Monthly
+        <strong>97</strong> (1990), 24&ndash;34.</li>
+      <li>M.&nbsp;Anderson and T.&nbsp;Feil, <em>Turning Lights Out with linear algebra</em>, Math.
+        Magazine <strong>71</strong> (1998), 300&ndash;303.</li>
+      <li>J.&nbsp;Goldwasser and W.&nbsp;Klostermeyer, <em>Maximization versions of &ldquo;Lights
+        Out&rdquo; games in grids and graphs</em>, Congr. Numer. <strong>126</strong> (1997),
+        99&ndash;111.</li>
+    </ol>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+/* ============================================================
+   Topology neighbor rule (shared by game, solver, worked grids)
+   ============================================================ */
+function getNeighbors(r, c, n, topology) {
+  const nbrs = [[r,c]]; // always include self
+  const offsets = [[-1,0],[1,0],[0,-1],[0,1]];
+  for (const [dr, dc] of offsets) {
+    let nr = r + dr, nc = c + dc;
+    switch(topology) {
+      case 'square':
+        if (nr >= 0 && nr < n && nc >= 0 && nc < n) nbrs.push([nr, nc]);
+        break;
+      case 'cylinder':
+        if (nr >= 0 && nr < n) nbrs.push([nr, ((nc % n) + n) % n]);
+        break;
+      case 'mobius':
+        if (nc < 0) { nc = n - 1; nr = n - 1 - nr; }
+        else if (nc >= n) { nc = 0; nr = n - 1 - nr; }
+        if (nr >= 0 && nr < n) nbrs.push([nr, nc]);
+        break;
+      case 'torus':
+        nbrs.push([((nr % n) + n) % n, ((nc % n) + n) % n]);
+        break;
+      case 'klein':
+        nr = ((nr % n) + n) % n;
+        if (nc < 0) { nc = n - 1; nr = n - 1 - nr; }
+        else if (nc >= n) { nc = 0; nr = n - 1 - nr; }
+        nbrs.push([nr, nc]);
+        break;
+      case 'projective':
+        if (nr < 0) { nr = 0; nc = n - 1 - nc; }
+        else if (nr >= n) { nr = n - 1; nc = n - 1 - nc; }
+        if (nc < 0) { nc = 0; nr = n - 1 - nr; }
+        else if (nc >= n) { nc = n - 1; nr = n - 1 - nr; }
+        nr = ((nr % n) + n) % n;
+        nc = ((nc % n) + n) % n;
+        nbrs.push([nr, nc]);
+        break;
+    }
+  }
+  return nbrs;
+}
+
+/* Build toggle matrix A (m x m), rows = lights, cols = buttons.
+   Column for button (r,c) has 1 in each light it toggles. */
+function buildMatrix(n, topology) {
+  const m = n*n;
+  const idx = (r,c)=> r*n + c;
+  const A = [];
+  for (let i=0;i<m;i++) A.push(new Uint8Array(m));
+  for (let r=0;r<n;r++) for (let c=0;c<n;c++) {
+    const col = idx(r,c);
+    const nb = getNeighbors(r,c,n,topology);
+    for (const [nr,nc] of nb) A[idx(nr,nc)][col] ^= 1;
+  }
+  return A;
+}
+
+/* Solve A x = b over F2 via Gaussian elimination. b is Uint8Array(m).
+   Returns Uint8Array(m) solution, or null if inconsistent. */
+function solveF2(Ain, bin) {
+  const m = Ain.length;
+  // augmented copy
+  const M = [];
+  for (let i=0;i<m;i++) {
+    const row = new Uint8Array(m+1);
+    row.set(Ain[i]);
+    row[m] = bin[i];
+    M.push(row);
+  }
+  const pivotCol = new Array(m).fill(-1);
+  let row = 0;
+  for (let col=0; col<m && row<m; col++) {
+    let sel = -1;
+    for (let i=row;i<m;i++) if (M[i][col]) { sel=i; break; }
+    if (sel === -1) continue;
+    const tmp = M[sel]; M[sel]=M[row]; M[row]=tmp;
+    for (let i=0;i<m;i++) {
+      if (i!==row && M[i][col]) {
+        const a=M[i], b=M[row];
+        for (let j=col;j<=m;j++) a[j]^=b[j];
+      }
+    }
+    pivotCol[row]=col;
+    row++;
+  }
+  // check consistency
+  for (let i=row;i<m;i++) if (M[i][m]) return null;
+  const x = new Uint8Array(m);
+  for (let i=0;i<row;i++) {
+    if (pivotCol[i]>=0) x[pivotCol[i]] = M[i][m];
+  }
+  return x;
+}
+
+/* ============================================================
+   Topology figure (Figure 1): six SVG diagrams
+   ============================================================ */
+(function(){
+  const S=70, P=8; // size, padding
+  function svgFor(spec){
+    // spec: {left:dir|null, right:dir|null, top:dir|null, bottom:dir|null, label}
+    // dir for vertical edges: 'up'|'down'; horizontal edges: 'right'|'left'
+    const x0=P, y0=P, x1=S-P, y1=S-P;
+    const BLUE='#2c5aa0', RED='#c0392b';
+    function arrow(x_1,y_1,x_2,y_2,color){
+      return `<line x1="${x_1}" y1="${y_1}" x2="${x_2}" y2="${y_2}" stroke="${color}" stroke-width="2.2" marker-end="url(#ah-${color==BLUE?'b':'r'})"/>`;
+    }
+    let parts = `<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" fill="none" stroke="#bbb" stroke-width="1"/>`;
+    // vertical edges (left,right) blue
+    if (spec.left){
+      const up = spec.left==='up';
+      parts += arrow(x0, up?y1:y0, x0, up?y0:y1, BLUE);
+    }
+    if (spec.right){
+      const up = spec.right==='up';
+      parts += arrow(x1, up?y1:y0, x1, up?y0:y1, BLUE);
+    }
+    // horizontal edges (top,bottom) red
+    if (spec.top){
+      const rt = spec.top==='right';
+      parts += arrow(rt?x0:x1, y0, rt?x1:x0, y0, RED);
+    }
+    if (spec.bottom){
+      const rt = spec.bottom==='right';
+      parts += arrow(rt?x0:x1, y1, rt?x1:x0, y1, RED);
+    }
+    return `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">
+      <defs>
+        <marker id="ah-b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="${BLUE}"/></marker>
+        <marker id="ah-r" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="${RED}"/></marker>
+      </defs>${parts}</svg>`;
+  }
+  // direct gluing: both arrows same direction. flip: opposite directions.
+  const specs = [
+    {label:'square'},
+    {label:'cylinder', left:'up', right:'up'},
+    {label:'Möbius strip', left:'up', right:'down'},
+    {label:'torus', left:'up', right:'up', top:'right', bottom:'right'},
+    {label:'Klein bottle', left:'up', right:'down', top:'right', bottom:'right'},
+    {label:'projective plane', left:'up', right:'down', top:'right', bottom:'left'},
+  ];
+  const host = document.getElementById('topoGrid');
+  let html='';
+  for (const s of specs){
+    html += `<div class="topo-cell">${svgFor(s)}<div class="topo-label">${s.label}</div></div>`;
+  }
+  host.innerHTML = html;
+})();
+
+/* ============================================================
+   Interactive game
+   ============================================================ */
+(function(){
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const statusEl = document.getElementById('gameStatus');
+  const moveEl = document.getElementById('moveCount');
+
+  let n = 5;
+  let topology = 'square';
+  let state;       // Uint8Array n*n, 1 = ON
+  let moves = 0;
+  let hint = null; // Uint8Array of presses to show
+
+  const DPR = window.devicePixelRatio || 1;
+  let cell, gap, pad, px;
+
+  function layout(){
+    const maxW = Math.min(360, window.innerWidth - 64);
+    px = maxW;
+    pad = 10;
+    gap = Math.max(3, Math.round(px/90));
+    cell = (px - 2*pad - (n-1)*gap) / n;
+    canvas.width = px*DPR; canvas.height = px*DPR;
+    canvas.style.width = px+'px'; canvas.style.height = px+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  function reset(){
+    state = new Uint8Array(n*n);
+    moves = 0; hint = null;
+    moveEl.textContent = '0';
+    setStatus('All lights off — switch them on.', false);
+    draw();
+  }
+
+  function setStatus(t, win){
+    statusEl.textContent = t;
+    statusEl.classList.toggle('win', !!win);
+  }
+
+  function press(r,c){
+    const nb = getNeighbors(r,c,n,topology);
+    for (const [nr,nc] of nb) state[nr*n+nc] ^= 1;
+  }
+
+  function isWin(){
+    for (let i=0;i<state.length;i++) if (!state[i]) return false;
+    return true;
+  }
+
+  function roundRect(x,y,w,h,rad){
+    ctx.beginPath();
+    ctx.moveTo(x+rad,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rad);
+    ctx.arcTo(x+w,y+h,x,y+h,rad);
+    ctx.arcTo(x,y+h,x,y,rad);
+    ctx.arcTo(x,y,x+w,y,rad);
+    ctx.closePath();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,px,px);
+    const rad = Math.max(4, cell*0.16);
+    for (let r=0;r<n;r++) for (let c=0;c<n;c++){
+      const x = pad + c*(cell+gap);
+      const y = pad + r*(cell+gap);
+      const on = state[r*n+c];
+      if (on){
+        ctx.save();
+        ctx.shadowColor = 'rgba(240,192,64,0.55)';
+        ctx.shadowBlur = cell*0.45;
+        roundRect(x,y,cell,cell,rad);
+        ctx.fillStyle = '#f0c040';
+        ctx.fill();
+        ctx.restore();
+        // inner highlight
+        roundRect(x,y,cell,cell,rad);
+        const g = ctx.createLinearGradient(x,y,x,y+cell);
+        g.addColorStop(0,'rgba(255,255,255,0.45)');
+        g.addColorStop(0.5,'rgba(255,255,255,0)');
+        ctx.fillStyle = g; ctx.fill();
+        ctx.strokeStyle = '#d9a82e'; ctx.lineWidth=1; ctx.stroke();
+      } else {
+        roundRect(x,y,cell,cell,rad);
+        ctx.fillStyle = '#f5f5f5'; ctx.fill();
+        ctx.strokeStyle = '#dddddd'; ctx.lineWidth=1; ctx.stroke();
+      }
+      // hint marker
+      if (hint && hint[r*n+c]){
+        ctx.beginPath();
+        ctx.arc(x+cell/2, y+cell/2, cell*0.16, 0, Math.PI*2);
+        ctx.fillStyle = on ? 'rgba(60,77,117,0.85)' : 'rgba(60,77,117,0.55)';
+        ctx.fill();
+      }
+    }
+  }
+
+  function hitTest(mx,my){
+    for (let r=0;r<n;r++) for (let c=0;c<n;c++){
+      const x = pad + c*(cell+gap);
+      const y = pad + r*(cell+gap);
+      if (mx>=x && mx<=x+cell && my>=y && my<=y+cell) return [r,c];
+    }
+    return null;
+  }
+
+  canvas.addEventListener('click', (e)=>{
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX-rect.left);
+    const my = (e.clientY-rect.top);
+    const hit = hitTest(mx,my);
+    if (!hit) return;
+    press(hit[0],hit[1]);
+    moves++; moveEl.textContent = String(moves);
+    if (hint){ hint[hit[0]*n+hit[1]] ^= 1; }
+    if (isWin()){ setStatus('✨ All lights on — solved in '+moves+' moves!', true); hint=null; }
+    else setStatus('Keep going.', false);
+    draw();
+  });
+
+  document.querySelectorAll('.btn.topo').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('.btn.topo').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      topology = b.dataset.topo;
+      reset();
+    });
+  });
+
+  document.getElementById('sizeSel').addEventListener('change', (e)=>{
+    n = parseInt(e.target.value,10);
+    layout(); reset();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', reset);
+
+  function currentSolution(){
+    // need presses x with A x = (1 - state), to reach all-on
+    const A = buildMatrix(n, topology);
+    const b = new Uint8Array(n*n);
+    for (let i=0;i<b.length;i++) b[i] = state[i] ? 0 : 1; // remaining off cells
+    return solveF2(A, b);
+  }
+
+  document.getElementById('solveBtn').addEventListener('click', ()=>{
+    const x = currentSolution();
+    if (!x){ setStatus('No solution exists from this configuration.', false); return; }
+    // apply it
+    for (let r=0;r<n;r++) for (let c=0;c<n;c++) if (x[r*n+c]) press(r,c);
+    hint = null;
+    moveEl.textContent = String(moves); // count unchanged conceptually
+    if (isWin()) setStatus('✨ Solved by Gaussian elimination over 𝔽₂.', true);
+    draw();
+  });
+
+  document.getElementById('hintBtn').addEventListener('click', ()=>{
+    const x = currentSolution();
+    if (!x){ setStatus('No solution exists from this configuration.', false); return; }
+    let cnt=0; for (let i=0;i<x.length;i++) cnt+=x[i];
+    hint = x;
+    setStatus('Press the '+cnt+' marked cell'+(cnt===1?'':'s')+' to win.', false);
+    draw();
+  });
+
+  window.addEventListener('resize', ()=>{ layout(); draw(); });
+
+  layout(); reset();
+})();
+
+/* ============================================================
+   Worked solutions (Figure 2): 6 interactive mini grids, 5x5
+   ============================================================ */
+(function(){
+  const N = 5;
+  const topos = [
+    {key:'square', label:'Square'},
+    {key:'cylinder', label:'Cylinder'},
+    {key:'mobius', label:'Möbius strip'},
+    {key:'torus', label:'Torus'},
+    {key:'klein', label:'Klein bottle'},
+    {key:'projective', label:'Projective plane'},
+  ];
+  const host = document.getElementById('workedGrid');
+  const DPR = window.devicePixelRatio || 1;
+
+  topos.forEach((t)=>{
+    // compute a solution via solver
+    const A = buildMatrix(N, t.key);
+    const b = new Uint8Array(N*N).fill(1);
+    const sol = solveF2(A, b); // presses
+    const cnt = sol ? sol.reduce((a,v)=>a+v,0) : 0;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'mini';
+    const cv = document.createElement('canvas');
+    const size = 120, pad=4, gap=3;
+    const cell = (size - 2*pad - (N-1)*gap)/N;
+    cv.width=size*DPR; cv.height=size*DPR;
+    cv.style.width=size+'px'; cv.style.height=size+'px';
+    const cx = cv.getContext('2d'); cx.setTransform(DPR,0,0,DPR,0,0);
+
+    function rr(x,y,w,h,r){
+      cx.beginPath();cx.moveTo(x+r,y);
+      cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);
+      cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();
+    }
+    function drawSol(){
+      cx.clearRect(0,0,size,size);
+      for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+        const x=pad+c*(cell+gap), y=pad+r*(cell+gap);
+        rr(x,y,cell,cell,3);
+        if (sol && sol[r*N+c]){ cx.fillStyle='#3a4d75'; cx.fill(); }
+        else { cx.fillStyle='#f3f3f3'; cx.fill(); cx.strokeStyle='#dcdcdc'; cx.lineWidth=1; cx.stroke(); }
+      }
+    }
+    drawSol();
+
+    const lab = document.createElement('div');
+    lab.className='ml';
+    lab.innerHTML = t.label+' <span style="color:#888;">('+cnt+')</span>';
+
+    const vb = document.createElement('button');
+    vb.className='btn vbtn'; vb.textContent='Verify';
+    const vr = document.createElement('div');
+    vr.className='vres';
+
+    let showingResult=false;
+    vb.addEventListener('click', ()=>{
+      if (showingResult){ drawSol(); vr.textContent=''; vr.className='vres'; vb.textContent='Verify'; showingResult=false; return; }
+      // apply presses to all-off board, draw resulting lit board
+      const stt = new Uint8Array(N*N);
+      if (sol){
+        for (let r=0;r<N;r++) for (let c=0;c<N;c++) if (sol[r*N+c]){
+          for (const [nr,nc] of getNeighbors(r,c,N,t.key)) stt[nr*N+nc]^=1;
+        }
+      }
+      // draw lit
+      cx.clearRect(0,0,size,size);
+      for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+        const x=pad+c*(cell+gap), y=pad+r*(cell+gap);
+        rr(x,y,cell,cell,3);
+        if (stt[r*N+c]){ cx.fillStyle='#f0c040'; cx.fill(); cx.strokeStyle='#d9a82e'; cx.lineWidth=1; cx.stroke(); }
+        else { cx.fillStyle='#f3f3f3'; cx.fill(); cx.strokeStyle='#dcdcdc'; cx.lineWidth=1; cx.stroke(); }
+      }
+      const allOn = stt.every(v=>v===1);
+      vr.textContent = allOn ? 'all lights on ✓' : 'failed';
+      vr.className = 'vres '+(allOn?'ok':'bad');
+      vb.textContent='Back';
+      showingResult=true;
+    });
+
+    wrap.appendChild(cv);
+    wrap.appendChild(lab);
+    wrap.appendChild(vb);
+    wrap.appendChild(vr);
+    host.appendChild(wrap);
+  });
+})();
+
+/* ============================================================
+   KaTeX render
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function(){
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: '\\[', right: '\\]', display: true},
+      {left: '\\(', right: '\\)', display: false},
+    ],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>

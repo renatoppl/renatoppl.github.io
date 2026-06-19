@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Switches &amp; Lamps</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #0e0e18;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      /* Prevent pull-to-refresh and overscroll on mobile */
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    /* ── Viewport ── */
+    #viewport {
+      position: relative;
+      line-height: 0;
+      border: 3px solid rgba(240,192,64,0.1);
+      border-radius: 6px;
+      box-shadow: 0 0 60px rgba(0,0,0,0.7);
+      overflow: hidden;
+      transition: border-color 0.6s, box-shadow 0.6s;
+    }
+    #viewport.win {
+      border-color: rgba(240,192,64,0.45);
+      box-shadow: 0 0 80px rgba(240,192,64,0.3), 0 0 60px rgba(0,0,0,0.7);
+    }
+
+    canvas { display: block; }
+
+    /* ── Click regions ── */
+    .click-region {
+      position: absolute;
+      cursor: pointer;
+      /* Eliminates 300ms tap delay on mobile without disabling zoom */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .click-region.map-bottom { cursor: zoom-in; }
+    .click-region.win-region  { cursor: zoom-in; }
+
+    /* ── Fullscreen overlay ── */
+    #fullscreen-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      /* Respect notches/home bars on mobile */
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+      z-index: 100;
+      background: #000;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      align-items: center;
+      justify-content: center;
+    }
+    #fullscreen-overlay.show {
+      display: flex;
+      animation: fadeIn 0.35s ease;
+    }
+    #fullscreen-overlay.hide {
+      animation: fadeOut 0.25s ease forwards;
+    }
+    @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
+    @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+    #fullscreen-overlay img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    #overlay-hint {
+      position: absolute;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      pointer-events: none;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <!-- Fullscreen image viewer -->
+  <div id="fullscreen-overlay" onclick="dismissFullscreen()">
+    <img id="fullscreen-img" src="" alt="">
+    <div id="overlay-hint">click anywhere to return</div>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  MASKS  (calibrated — do not edit by hand; use calibrate.html)
+// ═══════════════════════════════════════════════════════════
+const MASKS = {
+  lamps: [
+    [310,  293, 289, 402],
+    [602,  340, 239, 357],
+    [839,  350, 215, 352],
+    [1056, 356, 191, 353],
+    [1243, 367, 184, 342],
+  ],
+  switches: [
+    [304,  798, 270, 420],
+    [579,  787, 237, 403],
+    [833,  716, 208, 439],
+    [1047, 714, 184, 427],
+    [1234, 715, 179, 389],
+  ],
+  map:    [[2077, 75, 675, 1196]],
+  window: [[2083, 406, 347, 338]],
+};
+
+// ═══════════════════════════════════════════════════════════
+//  MATRIX  A  over F₂  (hardcoded)
+//  Rows:  11010
+//         11101
+//         10010
+//         01011
+//         10111
+// ═══════════════════════════════════════════════════════════
+const A = [
+  [1,1,0,1,0],
+  [1,1,1,0,1],
+  [1,0,0,1,0],
+  [0,1,0,1,1],
+  [1,0,1,1,1],
+];
+
+// ═══════════════════════════════════════════════════════════
+//  IMAGES
+// ═══════════════════════════════════════════════════════════
+const imgEls  = { on: new Image(), off: new Image(), mapLight: new Image(), onSwitches: new Image() };
+let   imgData = {};
+let   imgW, imgH, loaded = 0;
+
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+
+Object.entries(imgEls).forEach(([key, el]) => {
+  el.onload = () => {
+    if (++loaded < 4) return;
+    imgW = imgEls.on.width;
+    imgH = imgEls.on.height;
+    canvas.width  = imgW;
+    canvas.height = imgH;
+
+    const tmp = document.createElement('canvas');
+    tmp.width = imgW; tmp.height = imgH;
+    const tc = tmp.getContext('2d');
+
+    [['on','on'],['off','off'],['mapLight','mapLight'],['onSwitches','onSwitches']].forEach(([k, ek]) => {
+      tc.clearRect(0,0,imgW,imgH);
+      tc.drawImage(imgEls[ek], 0, 0);
+      imgData[k] = tc.getImageData(0, 0, imgW, imgH);
+    });
+
+    fitCanvas();
+    newGame();
+  };
+});
+imgEls.on.src         = 'assets/on.png';
+imgEls.off.src        = 'assets/off.png';
+imgEls.mapLight.src   = 'assets/map_light.png';
+imgEls.onSwitches.src = 'assets/on_switches.png';
+
+// Preload fullscreen images
+['assets/map.png','assets/window.png'].forEach(src => { const i = new Image(); i.src = src; });
+
+function viewportSize() {
+  // visualViewport accounts for mobile browser chrome (address bar, keyboard)
+  if (window.visualViewport) {
+    return { w: window.visualViewport.width, h: window.visualViewport.height };
+  }
+  return { w: window.innerWidth, h: window.innerHeight };
+}
+
+function fitCanvas() {
+  const { w, h } = viewportSize();
+  const s = Math.min(w / imgW, h / imgH, 1);
+  canvas.style.width  = (imgW * s) + 'px';
+  canvas.style.height = (imgH * s) + 'px';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════
+const N = 5;
+let xVec = Array(N).fill(0);   // switch positions (player input)
+let yVec = Array(N).fill(0);   // lamp states = A·x mod 2
+let won  = false;
+
+function f2mul(mat, vec) {
+  return mat.map(row => row.reduce((s,a,j) => (s + a*vec[j]) & 1, 0));
+}
+
+function newGame() {
+  xVec = Array(N).fill(0);
+  yVec = Array(N).fill(0);
+  won  = false;
+  document.getElementById('viewport').classList.remove('win');
+  render();
+  buildClickRegions();
+}
+
+function toggleSwitch(i) {
+  if (won) return;
+  xVec[i] ^= 1;
+  yVec = f2mul(A, xVec);
+  render();
+  if (yVec.every(v => v === 1)) {
+    won = true;
+    // Slight delay so lamps are seen to light before glow kicks in
+    setTimeout(() => {
+      render();   // re-render with map lit
+      document.getElementById('viewport').classList.add('win');
+      buildClickRegions();  // switch to post-win click regions
+    }, 400);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COMPOSITOR
+// ═══════════════════════════════════════════════════════════
+function render() {
+  if (!imgData.on) return;
+
+  const result = ctx.createImageData(imgW, imgH);
+  const rd = result.data;
+  rd.set(imgData.off.data);                         // base = off
+
+  const onD  = imgData.on.data;
+  const mapD = imgData.mapLight.data;
+
+  // Switches → on_switches.png (ON) or off.png (OFF, already in base)
+  const swD = imgData.onSwitches.data;
+  for (let i = 0; i < N; i++)
+    if (xVec[i]) copyRegion(rd, swD, MASKS.switches[i], 'rect');
+
+  // Lamps → on.png (ON) or off.png (OFF, already in base)
+  for (let i = 0; i < N; i++)
+    if (yVec[i]) copyRegion(rd, onD, MASKS.lamps[i], 'ellipse');
+
+  // Map → map_light.png only after winning
+  if (won) copyRegion(rd, mapD, MASKS.map[0], 'rect');
+
+  ctx.putImageData(result, 0, 0);
+}
+
+function copyRegion(dest, src, mask, shape) {
+  const [mx,my,mw,mh] = mask;
+  const cx=mx+mw/2, cy=my+mh/2, rx=mw/2, ry=mh/2;
+  const y0=Math.max(0,my),      y1=Math.min(imgH,my+mh);
+  const x0=Math.max(0,mx),      x1=Math.min(imgW,mx+mw);
+
+  for (let py=y0; py<y1; py++) {
+    for (let px=x0; px<x1; px++) {
+      let alpha;
+      if (shape === 'ellipse') {
+        const dx=(px-cx)/rx, dy=(py-cy)/ry, d=dx*dx+dy*dy;
+        if (d > 1) continue;
+        const t = Math.max(0,(d-0.72)/0.28);
+        alpha = 1 - t*t*(3-2*t);
+      } else {
+        const ex=Math.min(px-x0, x1-1-px, 8)/8;
+        const ey=Math.min(py-y0, y1-1-py, 8)/8;
+        const t = Math.max(0, Math.min(ex,ey));
+        alpha = t*t*(3-2*t);
+      }
+      const idx=(py*imgW+px)*4, ia=1-alpha;
+      if (alpha >= 0.995) {
+        dest[idx]=src[idx]; dest[idx+1]=src[idx+1]; dest[idx+2]=src[idx+2]; dest[idx+3]=src[idx+3];
+      } else {
+        dest[idx]  =(dest[idx]  *ia+src[idx]  *alpha+0.5)|0;
+        dest[idx+1]=(dest[idx+1]*ia+src[idx+1]*alpha+0.5)|0;
+        dest[idx+2]=(dest[idx+2]*ia+src[idx+2]*alpha+0.5)|0;
+        dest[idx+3]=(dest[idx+3]*ia+src[idx+3]*alpha+0.5)|0;
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLICK REGIONS
+// ═══════════════════════════════════════════════════════════
+function buildClickRegions() {
+  document.querySelectorAll('.click-region').forEach(e => e.remove());
+  const vp = document.getElementById('viewport');
+  const {sx, sy} = getScale();
+
+  if (!won) {
+    // Pre-win: switches are clickable
+    MASKS.switches.forEach((mask, i) => {
+      const div = makeRegion(mask, sx, sy, `Switch ${i+1}`);
+      div.addEventListener('click', () => toggleSwitch(i));
+      vp.appendChild(div);
+    });
+
+  } else {
+    // Post-win: switches disabled
+    // Bottom ¼ of map mask → fullscreen map.png
+    const [mx,my,mw,mh] = MASKS.map[0];
+    const triggerY = my + Math.round(mh * 0.75);
+    const triggerH = mh - Math.round(mh * 0.75);
+    const mapTrigger = makeRegion([mx, triggerY, mw, triggerH], sx, sy, 'Examine map');
+    mapTrigger.classList.add('map-bottom');
+    mapTrigger.addEventListener('click', () => showFullscreen('assets/map.png'));
+    vp.appendChild(mapTrigger);
+
+    // Window mask → fullscreen window.png
+    const winDiv = makeRegion(MASKS.window[0], sx, sy, 'Look through window');
+    winDiv.classList.add('win-region');
+    winDiv.addEventListener('click', () => showFullscreen('assets/window.png'));
+    vp.appendChild(winDiv);
+  }
+}
+
+function makeRegion(mask, sx, sy, title) {
+  const [mx,my,mw,mh] = mask;
+  const div = document.createElement('div');
+  div.className = 'click-region';
+  div.title     = title;
+  div.style.left   = (mx*sx)+'px';
+  div.style.top    = (my*sy)+'px';
+  div.style.width  = (mw*sx)+'px';
+  div.style.height = (mh*sy)+'px';
+  return div;
+}
+
+function getScale() {
+  const r = canvas.getBoundingClientRect();
+  return { sx: r.width/imgW, sy: r.height/imgH };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FULLSCREEN VIEWER
+// ═══════════════════════════════════════════════════════════
+let dismissing = false;
+
+function showFullscreen(src) {
+  const overlay = document.getElementById('fullscreen-overlay');
+  document.getElementById('fullscreen-img').src = src;
+  dismissing = false;
+  overlay.classList.remove('hide');
+  overlay.classList.add('show');
+}
+
+function dismissFullscreen() {
+  if (dismissing) return;
+  dismissing = true;
+  const overlay = document.getElementById('fullscreen-overlay');
+  overlay.classList.add('hide');
+  overlay.addEventListener('animationend', () => {
+    overlay.classList.remove('show','hide');
+    dismissing = false;
+  }, { once: true });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESIZE  — debounced, covers both window and visualViewport
+// ═══════════════════════════════════════════════════════════
+let resizeTimer = null;
+function onResize() {
+  if (!imgW) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    fitCanvas();
+    buildClickRegions();
+  }, 60);   // debounce: skip intermediate frames during resize drag
+}
+
+window.addEventListener('resize', onResize);
+
+// visualViewport fires when the mobile browser chrome appears/hides
+// (e.g. address bar sliding away on scroll, or soft keyboard opening)
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', onResize);
+}
+</script>
+</body>
+</html>
