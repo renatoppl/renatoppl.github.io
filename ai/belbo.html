@@ -411,9 +411,9 @@ const TERMINAL_CONFIG = {
     if (term.alarmOn && (v === "stand down" || v === "standdown" || v === "abort")) {
       return { action: "standdown", text: "STAND DOWN ACKNOWLEDGED.\nALARM DISENGAGED." };
     }
-    // refusing to comply trips the alarm
+    // Belbo's "no" — the true answer to Abulafia's prompt
     if (v === "no") {
-      return { action: "alarm", text: this.alarmText };
+      return { action: "refusal" };
     }
     return {
       action: "face",                   // play the pixel face animation
@@ -424,21 +424,56 @@ const TERMINAL_CONFIG = {
   // Text typed out when access is granted
   successText: "ACCESS GRANTED.",
 
-  // Filled in on the screen when the user refuses (types "no")
-  alarmText:
+  // Typed out fast (blinking red) when the user refuses (types "no")
+  threatText:
 "*** SECURITY ALERT ***\n" +
 "\n" +
 "User is refusing to enter password.\n" +
 "Unauthorized intent detected.\n" +
 "\n" +
-"LOCKDOWN PROTOCOL ENGAGED\n" +
 " > tracing connection ..... LOCATED\n" +
-" > alerting administrator .. SENT\n" +
+" > alerting administrator .. SENT",
+
+  // Shown unattributed, one after another, in steady red.
+  //  I — C. P. Cavafy, "Che fece … il gran rifiuto"
+  // II — Omar Khayyam, tr. Edward FitzGerald, Rubaiyat
+  poems: [
+"For some, there comes a day\n" +
+"when they must speak the great Yes\n" +
+"or the great No.\n" +
 "\n" +
-"This incident has been logged.\n" +
+"He who has the Yes ready within him\n" +
+"says it, and goes on\n" +
+"to his honour and his own conviction.\n" +
 "\n" +
-"Type STAND DOWN to abort,\n" +
-"or enter the password to proceed.",
+"He who refuses does not repent.\n" +
+"Asked again, he would answer No again.\n" +
+"And yet that No — the rightful No —\n" +
+"bears him down all his life.",
+
+"We are no other than a moving row\n" +
+"Of Magic Shadow-shapes that come and go\n" +
+"Round with the Sun-illumined Lantern held\n" +
+"In Midnight by the Master of the Show;\n" +
+"\n" +
+"But helpless Pieces of the Game He plays\n" +
+"Upon this Chequer-board of Nights and Days;\n" +
+"Hither and thither moves, and checks, and slays,\n" +
+"And one by one back in the Closet lays.",
+  ],
+
+  // Timing of the refusal sequence (milliseconds)
+  refusalTiming: {
+    threatSpeed:  12,        // per-character speed of the alert
+    threatHold:   1200,      // keep blinking on the alert before settling
+    loadingSpeed: 60,        // per-character speed of "Loading..."
+    loadingFirst: 2500,      // first  "Loading..." pause
+    loadingNext:  2000,      // second "Loading..." pause
+    poemSpeed:    45,        // per-character speed of the poems
+    poemHold:     1500,      // beat after each poem before continuing
+    redirecting:  3000,      // "Redirecting..." before leaving
+    nextUrl:      "no.html", // where the refusal leads
+  },
 
   // Angry pixel face, Jetsons-computer style.
   // '#' = lit pixel, '.' = off. Only the eyes change between
@@ -601,6 +636,8 @@ const TERMINAL_CONFIG = {
         line = "";
         display();
       }, 12);
+    } else if (result.action === "refusal") {
+      runRefusal();
     } else if (result.action === "standdown") {
       alarmOn = false;
       clearTimeout(alarmHoldTimer);
@@ -713,6 +750,37 @@ const TERMINAL_CONFIG = {
       document.addEventListener("keydown", reset, true);
       screen.addEventListener("click", reset, true);
     }, 400);
+  }
+
+  // ── Refusal sequence (the "no" path) ───────────────────────────
+  //  One continuous transmission, typed out character by character and
+  //  scrolling down (the screen never clears):
+  //  blinking threat -> Loading -> poem I -> Loading -> poem II
+  //  -> Redirecting -> no.html. Non-interactive once it begins.
+  function typeThenWait(text, speed, wait, done) {
+    typeOut(text, () => setTimeout(done, wait), speed);
+  }
+
+  function runRefusal() {
+    const T = TERMINAL_CONFIG.refusalTiming;
+    accepting = false;
+    document.body.classList.add("alarm");
+    document.body.classList.remove("alarm-steady");
+    // 1. blare the alert (blinking red), appended below the "> no" line
+    typeOut(TERMINAL_CONFIG.threatText + "\n", () => {
+      // 2. hold the blink, then settle to steady red
+      setTimeout(() => {
+        document.body.classList.add("alarm-steady");
+        // 3. Loading -> poem I -> Loading -> poem II -> Redirecting
+        typeThenWait("\nLoading...\n", T.loadingSpeed, T.loadingFirst, () => {
+        typeThenWait("\n" + TERMINAL_CONFIG.poems[0] + "\n", T.poemSpeed, T.poemHold, () => {
+        typeThenWait("\nRedirecting...\n", T.loadingSpeed, T.redirecting, () => {
+          window.location.href = T.nextUrl;
+        });
+        });
+        });
+      }, T.threatHold);
+    }, T.threatSpeed);
   }
 
   function handleKey(key) {
